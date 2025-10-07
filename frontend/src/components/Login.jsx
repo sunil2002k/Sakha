@@ -1,3 +1,4 @@
+import axios from "axios";
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
@@ -13,11 +14,17 @@ const Login = () => {
     navigate('/')
   }
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    // TODO: Handle login logic
-  };
-
+  const handleSubmit = async (e) => {
+  e.preventDefault();
+  try {
+    const res = await axios.post("http://localhost:5500/api/v1/auth/sign-in", form);
+    localStorage.setItem("token", res.data.data.token);
+    alert("Login successful!");
+    navigate("/");
+  } catch (err) {
+    alert(err.response?.data?.message || "Login failed");
+  }
+};
   return (
     <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={handleHome}>
       <div className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-xl shadow-2xl p-8 w-full max-w-md mx-4" onClick={(e) => e.stopPropagation()}>

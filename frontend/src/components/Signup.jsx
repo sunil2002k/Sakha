@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const Signup = () => {
   const [form, setForm] = useState({ name: "", email: "", password: "" });
@@ -8,19 +9,35 @@ const Signup = () => {
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
-  
-  const handleHome =()=>{
-    navigate('/')
-  }
 
-  const handleSubmit = (e) => {
+  const handleHome = () => {
+    navigate("/");
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // TODO: Handle signup logic
+    try {
+      const res = await axios.post(
+        "http://localhost:5500/api/v1/auth/sign-up",
+        form
+      );
+      localStorage.setItem("token", res.data.data.token);
+      alert("Signup successful!");
+      navigate("/login");
+    } catch (err) {
+      alert(err.response?.data?.message || "Signup failed");
+    }
   };
 
   return (
-    <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={handleHome}>
-      <div className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-xl shadow-2xl p-8 w-full max-w-md mx-4" onClick={(e) => e.stopPropagation()}>
+    <div
+      className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 backdrop-blur-sm"
+      onClick={handleHome}
+    >
+      <div
+        className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-xl shadow-2xl p-8 w-full max-w-md mx-4"
+        onClick={(e) => e.stopPropagation()}
+      >
         <h2 className="text-2xl font-bold text-white mb-6 text-center">
           Sign Up
         </h2>
