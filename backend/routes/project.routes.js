@@ -1,18 +1,21 @@
 import { Router } from "express";
+import { create_project, show_project } from "../controllers/project.controller.js";
 
-const projectRouter = Router()
+const projectRouter = Router();
 
-projectRouter.get('/',(req,res)=>{
-    res.send({title:'get all the projects'})
-})
+
+
+projectRouter.post('/create-project',create_project);
+
+
+projectRouter.get('/', show_project);
+
+
 
 projectRouter.get('/:id',(req,res)=>{
     res.send({title:'get specific projects'})
 })
 
-projectRouter.post('/',(req,res)=>{
-    res.send({title:'create the projects'})
-})
 
 projectRouter.put('/:id',(req,res)=>{
     res.send({title:'update projects'})

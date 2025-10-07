@@ -1,30 +1,50 @@
-import User from "../models/user.model.js";
+import mongoose from "mongoose";
+import Project from "../models/project.model.js";
 
-export const getUsers= async (req, res, next)=>{
-    try{
-        const users = await User.find();
+export const create_project = async (req, res) => {
+  try {
+    const {
+      title,
+      description,
+      tech_stack,
+      category,
+      expected_outcomes,
+      type,
+      targetAmount,
+      createdAt,
+    } = req.body;
 
-        res.status(200).json({success: true, data: users})
-    }
-    catch(error){
-        next(error);
-    }
+    const addedBy = req.body.userId;
+
+    const project = new Project({
+      title,
+      description,
+      tech_stack,
+      category,
+      expected_outcomes,
+      type,
+      targetAmount,
+      createdAt,
+      addedBy
+    });
+
+    const savedProject = await project.save();
+
+    res
+      .status(201)
+      .json({ message: "Project saved successfully", project: savedProject });
+  } catch (error) {
+    console.error("Error saving product:", error.message);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
 };
 
-export const getUser= async (req, res, next)=>{
-    try{
-        const user = await User.findById(req.params.id).select('-password');
-
-        if(!user){
-            const error = new Error('User not found');
-            error.statusCode = 404;
-            throw error;
-        }
-
-
-        res.status(200).json({success: true, data: user});
-    }
-    catch(error){
-        next(error);
-    }
+export const show_project = async (req, res) => {
+  try {
+    const projects = await Project.find(); 
+    res.send({ message: "success", projects });
+  } catch (error) {
+    console.error("Error fetching projects:", error);
+    res.status(500).send({ message: "server error" });
+  }
 };

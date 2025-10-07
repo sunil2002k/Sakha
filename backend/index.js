@@ -33,6 +33,6 @@ app.get("/", (req, res) => {
 app.listen(PORT, async()=>{
     console.log(`The app is running in port ${PORT}`);
     await connectToDatabase();
-})
+})    
 
 export default app;

@@ -1,10 +1,14 @@
 import React, { useState } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
+
+
 
 const IdeaAnalyzer = () => {
   const [pdfFile, setPdfFile] = useState(null);
   const [pdfUrl, setPdfUrl] = useState(null);
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   // Unified form state
   const [formData, setFormData] = useState({
@@ -71,11 +75,33 @@ const IdeaAnalyzer = () => {
   };
 
   // Submit form
-  const handleProjectSubmit = (e) => {
-    e.preventDefault();
-    console.log("Submitted Project:", formData);
-    // TODO: Send project data to backend
-  };
+const handleProjectSubmit = async (e) => {
+  e.preventDefault();
+  try {
+    const res = await axios.post(
+      "http://localhost:5500/api/v1/projects/create-project",
+      formData
+    );
+    alert("Project submitted successfully!");
+    setFormData({
+      title: "",
+      description: "",
+      tech_stack: "",
+      category: "",
+      expected_outcomes: "",
+      type: "mentorship",
+      targetAmount: "",
+    });
+    setPdfFile(null);
+    setPdfUrl(null);
+    navigate('/');
+  } catch (err) {
+    alert(
+      err.response?.data?.message ||
+        "Failed to submit project. Please try again."
+    );
+  }
+};
 
   return (
     <div className="p-8  max-w-4xl mx-auto ">
