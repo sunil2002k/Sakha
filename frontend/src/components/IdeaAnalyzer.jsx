@@ -2,8 +2,6 @@ import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
-
-
 const IdeaAnalyzer = () => {
   const [pdfFile, setPdfFile] = useState(null);
   const [pdfUrl, setPdfUrl] = useState(null);
@@ -60,7 +58,6 @@ const IdeaAnalyzer = () => {
     } catch (err) {
       // Optionally handle error
       console.error(err);
-      
     }
     setLoading(false);
   };
@@ -75,33 +72,46 @@ const IdeaAnalyzer = () => {
   };
 
   // Submit form
-const handleProjectSubmit = async (e) => {
-  e.preventDefault();
-  try {
+  const handleProjectSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const userId = localStorage.getItem("userId");
+      
+    if (!userId) {
+      alert("User not logged in. Please log in to submit your project.");
+      return;
+    }
+      const projectData = {
+      ...formData,
+      addedBy: userId,
+    };
+
     const res = await axios.post(
       "http://localhost:5500/api/v1/projects/create-project",
-      formData
+      projectData
     );
-    alert("Project submitted successfully!");
-    setFormData({
-      title: "",
-      description: "",
-      tech_stack: "",
-      category: "",
-      expected_outcomes: "",
-      type: "mentorship",
-      targetAmount: "",
-    });
-    setPdfFile(null);
-    setPdfUrl(null);
-    navigate('/');
-  } catch (err) {
-    alert(
-      err.response?.data?.message ||
-        "Failed to submit project. Please try again."
-    );
-  }
-};
+
+      alert("Project submitted successfully!");
+      setFormData({
+        title: "",
+        description: "",
+        tech_stack: "",
+        category: "",
+        expected_outcomes: "",
+        type: "mentorship",
+        targetAmount: "",
+         addedBy: "",
+      });
+      setPdfFile(null);
+      setPdfUrl(null);
+      navigate("/");
+    } catch (err) {
+      alert(
+        err.response?.data?.message ||
+          "Failed to submit project. Please try again."
+      );
+    }
+  };
 
   return (
     <div className="p-8  max-w-4xl mx-auto ">

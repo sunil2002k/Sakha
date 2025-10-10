@@ -11,6 +11,8 @@ import IdeaAnalyzer from "./components/IdeaAnalyzer.jsx";
 import About from "./components/About.jsx";
 import Login from "./components/Login.jsx";
 import Signup from "./components/Signup.jsx";
+import Projectdetail from "./components/Projectdetail.jsx";
+import Search from "./components/Search.jsx";
 
 
 const router = createBrowserRouter([
@@ -23,6 +25,8 @@ const router = createBrowserRouter([
       { path: "aboutus", element: <About /> },
       { path: "login", element: <Login /> },
       { path: "signup", element: <Signup /> },
+       { path: "project/:id", element: <Projectdetail/> },
+        { path: "search", element: <Search/> },
 
       
     ],

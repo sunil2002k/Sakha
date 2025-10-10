@@ -36,6 +36,10 @@ const projectSchema = new mongoose.Schema({
       return this.type === 'funding';
     },
   },
+  addedBy: {
+    type: String,
+    required: true,
+  },
   createdAt: {
     type: Date,
     default: Date.now,

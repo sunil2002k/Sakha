@@ -1,23 +1,26 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { Link } from "react-router-dom";
 
 const Home = () => {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
 
   // Fetch all projects
-  useEffect(() => {
-    const fetchProjects = async () => {
-      try {
-        const res = await axios.get("http://localhost:5500/api/v1/projects");
-        setProjects(res.data.projects || []);
-      } catch (err) {
-        console.error("Error fetching projects:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchProjects = async () => {
+    try {
+      const res = await axios.get(
+        "http://localhost:5500/api/v1/projects/showproject"
+      );
+      setProjects(res.data.projects || []);
+    } catch (err) {
+      console.error("Error fetching projects:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchProjects();
   }, []);
 
@@ -52,19 +55,20 @@ const Home = () => {
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {projects.map((proj) => (
-              <div
-                key={proj._id}
-                className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-4 hover:shadow-lg transition"
-              >
-                <h3 className="text-xl font-bold text-purple-400 mb-2">
-                  {proj.title}
-                </h3>
-                <p className="text-sm text-gray-300 mb-2">
-                  <span className="font-semibold">Category:</span>{" "}
-                  {proj.category}
-                </p>
-                <p className="text-gray-200 text-sm">{proj.description}</p>
-              </div>
+              <Link to={`/project/${proj._id}`} key={proj._id}>
+                <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-4 hover:shadow-lg hover:scale-105 transition">
+                  <h3 className="text-xl font-bold text-purple-400 mb-2">
+                    {proj.title}
+                  </h3>
+                  <p className="text-sm text-gray-300 mb-2">
+                    <span className="font-semibold">Category:</span>{" "}
+                    {proj.category}
+                  </p>
+                  <p className="text-gray-200 text-sm">
+                    {proj.description.slice(0, 80)}...
+                  </p>
+                </div>
+              </Link>
             ))}
           </div>
         )}
