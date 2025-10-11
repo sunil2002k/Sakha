@@ -40,7 +40,7 @@ const IdeaAnalyzer = () => {
 
     try {
       const res = await axios.post(
-        `${process.env.VITE_APP_URL}/analyze-pdf`,
+        `http://127.0.0.1:5000/analyze-pdf`,
         formDataPdf,
         {
           headers: { "Content-Type": "multipart/form-data" },

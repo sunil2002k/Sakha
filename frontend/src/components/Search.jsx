@@ -16,7 +16,9 @@ const Search = () => {
 
       try {
         setLoading(true);
-        const res = await axios.get(`http://localhost:5500/api/v1/projects/search?q=${query}`);
+        const res = await axios.get(
+          `http://localhost:5500/api/v1/projects/search?q=${query}`
+        );
         if (res.data.projects.length > 0) {
           console.log(res.data.projects);
           setProjects(res.data.projects);
@@ -37,7 +39,11 @@ const Search = () => {
   }, [query]);
 
   if (loading)
-    return <div className="text-center text-white mt-20 text-lg">Loading results...</div>;
+    return (
+      <div className="text-center text-white mt-20 text-lg">
+        Loading results...
+      </div>
+    );
 
   return (
     <div className="p-8 max-w-5xl mx-auto text-white">
@@ -50,25 +56,25 @@ const Search = () => {
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {projects.map((proj) => (
-            
-              <Link
-                to={`/project/${proj._id}`}
+            <Link to={`/project/${proj._id}`}>
+              <div
+                key={proj._id}
+                className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-xl p-6 shadow-lg hover:shadow-purple-500/20 transition"
               >
-            <div
-              key={proj._id}
-              className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-xl p-6 shadow-lg hover:shadow-purple-500/20 transition"
-            >
-              <h3 className="text-xl font-semibold mb-2 text-purple-300">{proj.title}</h3>
-              <p className="text-sm text-gray-300 line-clamp-3">{proj.description}</p>
-              <p className="mt-2 text-sm text-gray-400">
-                <strong>Tech Stack:</strong> {proj.tech_stack}
-              </p>
-              <p className="mt-1 text-sm text-gray-400">
-                <strong>Category:</strong> {proj.category}
-              </p>
-</div>
-              </Link>
-            
+                <h3 className="text-xl font-semibold mb-2 text-purple-300">
+                  {proj.title}
+                </h3>
+                <p className="text-sm text-gray-300 line-clamp-3">
+                  {proj.description}
+                </p>
+                <p className="mt-2 text-sm text-gray-400">
+                  <strong>Tech Stack:</strong> {proj.tech_stack}
+                </p>
+                <p className="mt-1 text-sm text-gray-400">
+                  <strong>Category:</strong> {proj.category}
+                </p>
+              </div>
+            </Link>
           ))}
         </div>
       )}

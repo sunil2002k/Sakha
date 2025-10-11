@@ -6,6 +6,8 @@ import projectRouter from "./routes/project.routes.js";
 import connectToDatabase from "./database/mongodb.js";
 import errorMiddleware from "./middlewares/error.middleware.js";
 import authRouter from "./routes/auth.routes.js";
+import paymentRouter from "./routes/payment.routes.js";
+
 
 
 const app = express();
@@ -21,6 +23,7 @@ app.use(express.urlencoded({extended:false}));
 app.use("/api/v1/auth", authRouter);
 app.use('/api/v1/users',userRouter);
 app.use('/api/v1/projects',projectRouter);
+app.use("/api/v1/payments",paymentRouter);
 
 
 app.use(errorMiddleware);
