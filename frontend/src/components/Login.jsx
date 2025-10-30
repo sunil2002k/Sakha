@@ -5,6 +5,7 @@ import { Link, useNavigate } from "react-router-dom";
 const Login = () => {
   const [form, setForm] = useState({ email: "", password: "" });
   const navigate = useNavigate();
+  const APIURL = import.meta.env.VITE_APP_URL;
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -18,7 +19,7 @@ const Login = () => {
     e.preventDefault();
     try {
       const res = await axios.post(
-        "http://localhost:5500/api/v1/auth/sign-in",
+        `${APIURL}/api/v1/auth/sign-in`,
         form
       );
       localStorage.setItem("token", res.data.data.token);

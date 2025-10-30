@@ -7,7 +7,7 @@ const Search = () => {
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
   const location = useLocation();
-
+  const APIURL = import.meta.env.VITE_APP_URL;
   const query = new URLSearchParams(location.search).get("q");
 
   useEffect(() => {
@@ -17,10 +17,10 @@ const Search = () => {
       try {
         setLoading(true);
         const res = await axios.get(
-          `http://localhost:5500/api/v1/projects/search?q=${query}`
+          `${APIURL}/api/v1/projects/search?q=${query}`
         );
         if (res.data.projects.length > 0) {
-          console.log(res.data.projects);
+          // console.log(res.data.projects);
           setProjects(res.data.projects);
           setMessage("");
         } else {

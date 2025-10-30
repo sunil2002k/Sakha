@@ -6,6 +6,8 @@ const Signup = () => {
   const [form, setForm] = useState({ name: "", email: "", password: "" });
   const navigate = useNavigate();
 
+  const APIURL = import.meta.env.VITE_APP_URL;
+
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
@@ -18,7 +20,7 @@ const Signup = () => {
     e.preventDefault();
     try {
       const res = await axios.post(
-        "http://localhost:5500/api/v1/auth/sign-up",
+        `${APIURL}/api/v1/auth/sign-up`,
         form
       );
       localStorage.setItem("token", res.data.data.token);

@@ -36,8 +36,13 @@ const projectSchema = new mongoose.Schema({
       return this.type === 'funding';
     },
   },
+  images:{
+    type: [String],
+    required: true,
+  },
   addedBy: {
-    type: String,
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
     required: true,
   },
   createdAt: {

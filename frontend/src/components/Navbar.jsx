@@ -1,6 +1,12 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import { FaBars, FaTimes, FaUser, FaSearch, FaTimesCircle } from "react-icons/fa";
+import {
+  FaBars,
+  FaTimes,
+  FaUser,
+  FaSearch,
+  FaTimesCircle,
+} from "react-icons/fa";
 import axios from "axios";
 
 const Navbar = () => {
@@ -12,6 +18,7 @@ const Navbar = () => {
   const popupRef = useRef(null);
   const searchInputRef = useRef(null);
   const navigate = useNavigate();
+  const APIURL = import.meta.env.VITE_APP_URL;
 
   const navLinks = [
     { name: "Home", path: "/" },
@@ -25,7 +32,7 @@ const Navbar = () => {
       const token = localStorage.getItem("token");
       if (!token) return;
 
-      const res = await axios.get("http://localhost:5500/api/v1/users/getUser", {
+      const res = await axios.get(`${APIURL}/api/v1/users/getUser`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -147,7 +154,9 @@ const Navbar = () => {
               to={link.path}
               className={({ isActive }) =>
                 `text-lg font-medium duration-200 ${
-                  isActive ? "text-purple-400" : "text-white hover:text-purple-300"
+                  isActive
+                    ? "text-purple-400"
+                    : "text-white hover:text-purple-300"
                 }`
               }
             >
@@ -231,7 +240,7 @@ const Navbar = () => {
                 <button
                   type="button"
                   onClick={clearSearch}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+                  className="absolute right-[calc(var(--spacing)*0.5)] top-[calc(var(--spacing) * 2)] transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
                 >
                   <FaTimesCircle />
                 </button>
@@ -266,7 +275,7 @@ const Navbar = () => {
               {link.name}
             </NavLink>
           ))}
-          
+
           {/* Mobile User Info in Drawer */}
           <div className="mt-4 pt-4 border-t border-white/20">
             {user ? (
