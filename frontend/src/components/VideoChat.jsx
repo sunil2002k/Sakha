@@ -1,13 +1,19 @@
-import React, { useEffect, useRef, useState, useContext } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import io from "socket.io-client";
+import axios from "axios";
 
-// 💡 NOTE: Replace 'useAuthContext' with your actual user context/hook
+// 💡 NOTE: Replace the mock user with your real auth user/context
 // import { useAuthContext } from '../context/AuthContext';
 
-const SOCKET_SERVER_URL = import.meta.env.VITE_APP_URL;
+// prefer explicit env (set to your ngrok https URL), fallback to same origin as the page
+const SOCKET_SERVER_URL =
+  import.meta.env.VITE_APP_URL ??
+  import.meta.env.VITE_API_URL ??
+  (typeof window !== "undefined"
+    ? window.location.origin
+    : "http://localhost:5500");
 const ICE_SERVERS = {
-  // Use public STUN servers for testing connectivity
   iceServers: [
     { urls: "stun:stun.l.google.com:19302" },
     { urls: "stun:stun1.l.google.com:19302" },
@@ -17,25 +23,63 @@ const ICE_SERVERS = {
 const VideoChat = () => {
   const { projectId } = useParams();
   const navigate = useNavigate();
-  // const { user } = useAuthContext(); // 💡 Get the current user
-  const user = { _id: "MOCK_USER_ID_123" }; // Mock user object for demonstration
+
+  // Replace this mock with your real user object (from auth/context)
+  const user = { _id: localStorage.getItem("userId") || "MOCK_USER_ID_123" };
 
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
   const peerConnectionRef = useRef(null);
   const socketRef = useRef(null);
 
+  const cameraStreamRef = useRef(null); // original camera stream
+  const screenStreamRef = useRef(null); // screen share stream
+  const originalVideoTrackRef = useRef(null); // original camera video track
+
   const [status, setStatus] = useState("Connecting to server...");
   const [isCallActive, setIsCallActive] = useState(false);
-  const [partnerSocketId, setPartnerSocketId] = useState(null);
+  const [ownerId, setOwnerId] = useState(null);
+  const [isOwner, setIsOwner] = useState(false);
   const [pendingRequests, setPendingRequests] = useState([]);
+  const [partnerSocketId, setPartnerSocketId] = useState(null);
+
+  // helper: determine if client is mentor (not owner)
+  const isMentorClient = () => {
+    return !!ownerId && String(user._id) !== String(ownerId);
+  };
 
   useEffect(() => {
-    // 1. Initialize Socket.IO connection
+    // fetch project to learn ownerId
+    const fetchProjectOwner = async () => {
+      try {
+        const APIURL =
+          import.meta.env.VITE_APP_URL ??
+          "http://localhost:5500";
+        const res = await axios.get(`${APIURL}/api/v1/projects/${projectId}`);
+        const proj = res.data.project ?? res.data;
+        const addedById =
+          proj?.addedBy &&
+          (typeof proj.addedBy === "string"
+            ? proj.addedBy
+            : proj.addedBy._id ?? proj.addedBy);
+        setOwnerId(addedById);
+        setIsOwner(String(user._id) === String(addedById));
+      } catch (err) {
+        console.error("Failed to fetch project owner:", err);
+      }
+    };
+
+    fetchProjectOwner();
+  }, [projectId, user._id]);
+
+  useEffect(() => {
+    console.log("Connecting socket to:", SOCKET_SERVER_URL);
+    // 1. Initialize socket
+    const token = localStorage.getItem("token"); // if you want to send auth
     socketRef.current = io(SOCKET_SERVER_URL, {
-      auth: {
-        userId: user._id,
-      },
+      auth: { userId: user._id, token },
+      transports: ["websocket", "polling"],
+      // upgrade:true (default) — keep websocket primary transport
     });
     const socket = socketRef.current;
 
@@ -43,53 +87,34 @@ const VideoChat = () => {
       socket.emit("join-room", projectId);
     });
 
-    // owner receives pending mentor requests
-    socket.on("mentor-request", (req) => {
-      // only owner will get this; show UI to accept/reject
-      setPendingRequests((prev) => [...prev, req]);
-    });
-
-    socket.on("mentor-pending-list", (list) => {
-      setPendingRequests(list || []);
-    });
-
-    socket.on("waiting-for-approval", () => {
-      setStatus("Waiting for owner approval...");
-    });
-
-    socket.on("waiting-for-owner", () => {
-      setStatus("Waiting for owner to join...");
-    });
-
+    socket.on("mentor-request", (req) =>
+      setPendingRequests((prev) => [...prev, req])
+    );
+    socket.on("mentor-pending-list", (list) => setPendingRequests(list || []));
+    socket.on("waiting-for-approval", () =>
+      setStatus("Waiting for owner approval...")
+    );
+    socket.on("waiting-for-owner", () =>
+      setStatus("Waiting for owner to join...")
+    );
     socket.on("mentor-approved", () => {
       setStatus("Mentor approved. Call starting...");
-      // proceed with offer/answer flow; if you're the mentor, createOffer will occur when owner signals
       if (isMentorClient()) createOffer();
     });
-
     socket.on("mentor-rejected", () => {
       alert("Owner rejected your mentorship request.");
-      // close
       navigate(`/project/${projectId}`);
     });
 
-    // --- Socket Event Handlers ---
-
     socket.on("user-ready", (msg) => {
       setStatus(msg);
-      // If we are the first to join, we become the 'offerer' when the second person joins.
-      if (msg.includes("Waiting for partner")) {
-        setIsCallActive(true);
-      }
+      if (msg.includes("Waiting for partner")) setIsCallActive(true);
     });
 
     socket.on("user-joined", (partnerId) => {
       setStatus("Partner joined. Starting call...");
       setPartnerSocketId(partnerId);
-      // If we are the offerer (the first user), create the offer now
-      if (isCallActive) {
-        createOffer();
-      }
+      if (isCallActive) createOffer();
     });
 
     socket.on("offer", async (offer) => {
@@ -110,7 +135,7 @@ const VideoChat = () => {
     socket.on("ice-candidate", (candidate) => {
       peerConnectionRef.current
         .addIceCandidate(new RTCIceCandidate(candidate))
-        .catch((e) => console.error("Error adding received ICE candidate:", e));
+        .catch((e) => console.error(e));
     });
 
     socket.on("partner-left", () => {
@@ -124,25 +149,23 @@ const VideoChat = () => {
       navigate("/");
     });
 
-    // --- WebRTC Setup ---
-
+    // Setup WebRTC
     const setupWebRTC = async () => {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
           video: true,
           audio: true,
         });
-        if (localVideoRef.current) {
-          localVideoRef.current.srcObject = stream;
-        }
+        cameraStreamRef.current = stream;
+        originalVideoTrackRef.current = stream.getVideoTracks()[0] || null;
+        if (localVideoRef.current) localVideoRef.current.srcObject = stream;
 
         peerConnectionRef.current = new RTCPeerConnection(ICE_SERVERS);
         const pc = peerConnectionRef.current;
 
-        // Add local tracks to the peer connection
+        // add local tracks
         stream.getTracks().forEach((track) => pc.addTrack(track, stream));
 
-        // Listener for receiving remote tracks (partner's video/audio)
         pc.ontrack = (event) => {
           if (
             remoteVideoRef.current &&
@@ -152,12 +175,8 @@ const VideoChat = () => {
           }
         };
 
-        // Listener for gathering ICE candidates (network info)
         pc.onicecandidate = (event) => {
-          if (event.candidate) {
-            // Send the candidate to the partner via the signaling server
-            socket.emit("ice-candidate", event.candidate);
-          }
+          if (event.candidate) socket.emit("ice-candidate", event.candidate);
         };
 
         setStatus("Media access granted. Signaling...");
@@ -168,41 +187,103 @@ const VideoChat = () => {
     };
 
     const createOffer = async () => {
-      const offer = await peerConnectionRef.current.createOffer();
-      await peerConnectionRef.current.setLocalDescription(offer);
-      socket.emit("offer", peerConnectionRef.current.localDescription);
-      setStatus("Sending offer...");
+      try {
+        const pc = peerConnectionRef.current;
+        const offer = await pc.createOffer();
+        await pc.setLocalDescription(offer);
+        socket.emit("offer", pc.localDescription);
+        setStatus("Sending offer...");
+      } catch (e) {
+        console.error("createOffer error:", e);
+      }
     };
 
     const createAnswer = async () => {
-      const answer = await peerConnectionRef.current.createAnswer();
-      await peerConnectionRef.current.setLocalDescription(answer);
-      socket.emit("answer", peerConnectionRef.current.localDescription);
-      setStatus("Sending answer. Call established.");
+      try {
+        const pc = peerConnectionRef.current;
+        const answer = await pc.createAnswer();
+        await pc.setLocalDescription(answer);
+        socket.emit("answer", pc.localDescription);
+        setStatus("Sending answer. Call established.");
+      } catch (e) {
+        console.error("createAnswer error:", e);
+      }
     };
 
     setupWebRTC();
 
-    // --- Cleanup ---
+    // cleanup
     return () => {
-      // 1. Stop local media streams
       if (localVideoRef.current && localVideoRef.current.srcObject) {
-        localVideoRef.current.srcObject
-          .getTracks()
-          .forEach((track) => track.stop());
+        localVideoRef.current.srcObject.getTracks().forEach((t) => t.stop());
       }
-
-      // 2. Close peer connection
-      if (peerConnectionRef.current) {
-        peerConnectionRef.current.close();
-      }
-
-      // 3. Disconnect socket
-      if (socketRef.current) {
-        socketRef.current.disconnect();
-      }
+      if (peerConnectionRef.current) peerConnectionRef.current.close();
+      if (socketRef.current) socketRef.current.disconnect();
     };
-  }, [projectId, navigate, user._id, isCallActive]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projectId, ownerId]);
+
+  // Replace the current outbound video track with a new MediaStreamTrack (screen)
+  const startScreenShare = async () => {
+    if (!peerConnectionRef.current) return;
+    try {
+      const screenStream = await navigator.mediaDevices.getDisplayMedia({
+        video: true,
+      });
+      screenStreamRef.current = screenStream;
+      const screenTrack = screenStream.getVideoTracks()[0];
+
+      // replace sender track
+      const senders = peerConnectionRef.current.getSenders();
+      const videoSender = senders.find(
+        (s) => s.track && s.track.kind === "video"
+      );
+      if (videoSender) {
+        await videoSender.replaceTrack(screenTrack);
+      }
+
+      // show the screen in local video element
+      if (localVideoRef.current) localVideoRef.current.srcObject = screenStream;
+
+      // when screen sharing stops, restore camera track
+      screenTrack.onended = async () => {
+        await stopScreenShare();
+      };
+
+      setStatus("You are sharing your screen");
+    } catch (err) {
+      console.error("Screen share error:", err);
+    }
+  };
+
+  const stopScreenShare = async () => {
+    try {
+      // stop screen tracks
+      if (screenStreamRef.current) {
+        screenStreamRef.current.getTracks().forEach((t) => t.stop());
+        screenStreamRef.current = null;
+      }
+
+      // restore original camera track to the sender
+      const pc = peerConnectionRef.current;
+      const senders = pc ? pc.getSenders() : [];
+      const videoSender = senders.find(
+        (s) => s.track && s.track.kind === "video"
+      );
+      if (videoSender && originalVideoTrackRef.current) {
+        await videoSender.replaceTrack(originalVideoTrackRef.current);
+      }
+
+      // restore local video preview to camera stream
+      if (cameraStreamRef.current && localVideoRef.current) {
+        localVideoRef.current.srcObject = cameraStreamRef.current;
+      }
+
+      setStatus("Screen sharing stopped");
+    } catch (err) {
+      console.error("stopScreenShare error:", err);
+    }
+  };
 
   const resetCall = () => {
     if (localVideoRef.current && localVideoRef.current.srcObject) {
@@ -210,13 +291,13 @@ const VideoChat = () => {
         .getTracks()
         .forEach((track) => track.stop());
     }
-    if (peerConnectionRef.current) {
-      peerConnectionRef.current.close();
-    }
-    window.location.href = `/project/${projectId}`;
+    if (peerConnectionRef.current) peerConnectionRef.current.close();
+    if (socketRef.current) socketRef.current.disconnect();
+    navigate(`/project/${projectId}`);
   };
 
   const handleApprove = (socketId, approve) => {
+    if (!socketRef.current) return;
     socketRef.current.emit("approve-mentor", { projectId, socketId, approve });
     setPendingRequests((prev) => prev.filter((p) => p.socketId !== socketId));
   };
@@ -238,6 +319,22 @@ const VideoChat = () => {
             muted
             className="w-full h-80 bg-black rounded-lg border-2 border-purple-500"
           />
+          {isOwner && (
+            <div className="mt-3 flex gap-2">
+              <button
+                onClick={startScreenShare}
+                className="px-3 py-2 bg-indigo-600 rounded"
+              >
+                Start Screen Share
+              </button>
+              <button
+                onClick={stopScreenShare}
+                className="px-3 py-2 bg-gray-600 rounded"
+              >
+                Stop Screen Share
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Remote Video Stream */}
@@ -262,7 +359,7 @@ const VideoChat = () => {
       </div>
 
       {/* Pending Requests Panel (Owner only) */}
-      {pendingRequests.length > 0 && (
+      {isOwner && pendingRequests.length > 0 && (
         <div className="fixed top-24 right-6 z-60 bg-white/5 p-4 rounded-lg border border-white/10">
           <h3 className="text-white font-semibold mb-2">Mentor Requests</h3>
           {pendingRequests.map((r) => (

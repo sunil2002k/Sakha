@@ -9,7 +9,6 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics.pairwise import cosine_similarity
-from sklearn.model_selection import train_test_split
 import joblib
 from PyPDF2 import PdfReader
 import io
