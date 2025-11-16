@@ -11,13 +11,13 @@ import Signup from "./components/Signup.jsx";
 import Projectdetail from "./components/Projectdetail.jsx";
 import Search from "./components/Search.jsx";
 import Projects from "./components/Projects.jsx";
-import VideoChat from "./components/VideoChat.jsx";
 import PaymentResult from "./components/PaymentResult.jsx";
+
 
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <LayOut />, 
+    element: <LayOut />,
     children: [
       { path: "", element: <Home /> },
       { path: "submit", element: <IdeaAnalyzer /> },
@@ -25,16 +25,16 @@ const router = createBrowserRouter([
       { path: "login", element: <Login /> },
       { path: "signup", element: <Signup /> },
       { path: "search", element: <Search /> },
-      {path:'projects', element: <Projects/>},
-      {path: "payment-result", element: <PaymentResult/>},
+      { path: "projects", element: <Projects /> },
+      { path: "payment-result", element: <PaymentResult /> },
       { path: "project/:id", element: <Projectdetail /> },
-      {path:"/video-chat/:projectId", element: <VideoChat/>}
+      
     ],
   },
 ]);
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
-    <RouterProvider router={router} />
+      <RouterProvider router={router} />
   </StrictMode>
 );

@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams,useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import { FaFacebook, FaTwitter, FaShare, FaRegCopy } from "react-icons/fa";
 
 const Projectdetail = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [project, setProject] = useState(null);
   const [creator, setCreator] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -112,6 +113,20 @@ const Projectdetail = () => {
     }
   };
 
+  const handleStartMentorship = () => {
+        const userId = localStorage.getItem("userId");
+        const token = localStorage.getItem("token");
+
+        if (!userId || !token) {
+            // 🛑 Gated check: Redirect to login if not authenticated
+            alert("Please log in to start a mentorship session.");
+            navigate('/login');
+            return;
+        }
+
+        // ✅ Main action: Navigate to the video chat room
+        navigate(`/chatroom/${id}`);
+    };
   // 🕓 Loading state
   if (loading) {
     return (
@@ -334,14 +349,13 @@ const Projectdetail = () => {
                 )}
 
                 {project.type === "mentorship" && (
-                  <Link
-                    to={`/video-chat/${project._id}`}
+                  <button onClick={handleStartMentorship}
                     className="block w-full py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 rounded-xl font-bold text-lg text-center hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/25 transition-all duration-300"
                   >
                     <span className="flex items-center justify-center">
                       👥 Start Mentorship Session
                     </span>
-                  </Link>
+                  </button>
                 )}
 
                 <Link

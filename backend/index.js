@@ -12,30 +12,17 @@ import connectToDatabase from "./database/mongodb.js";
 import errorMiddleware from "./middlewares/error.middleware.js";
 import authRouter from "./routes/auth.routes.js";
 import paymentRouter from "./routes/payment.routes.js";
-import { attachSocketAuth, injectIoToRequests } from "./middlewares/socket.middleware.js";
+import {
+  attachSocketAuth,
+  injectIoToRequests,
+} from "./middlewares/socket.middleware.js";
 import { registerSocketHandlers } from "./controllers/socket.controller.js";
 import socketRouter from "./routes/socket.routes.js";
 
-
 const app = express();
 
-app.use(
-  cors({
-    origin: [
-      "http://localhost:5173","https://3ab2ca6b9358.ngrok-free.app","https://1cdeea281793.ngrok-free.app"
-    ],
-    credentials: true,
-    methods: ["GET", "POST"],
-    allowedHeaders: ["Content-Type", "Authorization", "Accept"],
-  })
-);
-// app.use((req, res, next) => {
-//   res.setHeader("ngrok-skip-browser-warning", "true");
-//   next();
-// });
-
-
-// app.options('*', cors());
+// DEVELOPMENT: allow any origin for dev (restrict in production)
+app.use(cors({ origin: true, credentials: true }));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -55,12 +42,9 @@ app.get("/", (req, res) => {
 const httpServer = createServer(app);
 
 // --- 2. Socket.IO Initialization ---
+// Socket.IO: allow all origins in dev (or set to exact FRONTEND URL in production)
 const io = new Server(httpServer, {
-  cors: {
-    origin: "http://localhost:5173",
-    methods: ["GET", "POST"],
-    credentials: true,
-  },
+  cors: { origin: true, methods: ["GET", "POST"], credentials: true },
 });
 
 // attach optional handshake auth
