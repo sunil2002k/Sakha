@@ -37,7 +37,7 @@ const Navbar = () => {
           Authorization: `Bearer ${token}`,
         },
       });
-
+      
       setUser(res.data.data);
     } catch (error) {
       console.error("Error fetching user:", error);
@@ -281,7 +281,7 @@ const Navbar = () => {
             {user ? (
               <div className="flex flex-col space-y-3">
                 <span className="text-purple-300 font-semibold">
-                  Hello, {user.name}
+                  Hello, {user.fullName}
                 </span>
                 <button
                   onClick={handleLogout}
