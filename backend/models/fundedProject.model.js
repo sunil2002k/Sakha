@@ -7,6 +7,11 @@ const fundedProjectSchema = new mongoose.Schema(
       ref: "Project",
       required: true,
     },
+    fundedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true,
+  },
     totalPrice: {
       type: Number,
       required: true,

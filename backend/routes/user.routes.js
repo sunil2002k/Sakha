@@ -1,18 +1,30 @@
-import { Router } from "express";
-import { getUser, getUserById } from "../controllers/user.controller.js";
-const userRouter = Router();
+import express from "express";
+import {
+  getUsers,
+  getUserById,
+  getFriendRequests,
+  getOutgoingFriendReqs,
+  getMyFriends,
+  sendFriendRequest,
+  acceptFriendRequest,
+} from "../controllers/user.controller.js";
+import authorize from "../middlewares/auth.middleware.js";
 
-userRouter.get('/getUser', getUser);
+const router = express.Router();
 
-userRouter.get('/:id', getUserById);
-userRouter.post('/',(req,res)=>{
-    res.send({title: 'create new user'})
-})
-userRouter.put('/:id',(req,res)=>{
-    res.send({title: 'update user by id'})
-})
-userRouter.delete('/:id',(req,res)=>{
-    res.send({title: 'delete user by id'})
-})
+// Public or admin list
+router.get("/", getUsers);
 
-export default userRouter;
+// Protected user-related routes (must come BEFORE "/:id")
+router.get("/friend-requests", authorize, getFriendRequests);
+router.get("/outgoing-friend-requests", authorize, getOutgoingFriendReqs);
+router.get("/friends", authorize, getMyFriends);
+
+// Friend request actions
+router.post("/friend-request/:id", authorize, sendFriendRequest);
+router.put("/friend-request/:id/accept", authorize, acceptFriendRequest);
+
+// Single user by id – keep this LAST so it doesn't catch "friend-requests"
+router.get("/:id", getUserById);
+
+export default router;

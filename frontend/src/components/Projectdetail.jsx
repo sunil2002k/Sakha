@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams,useNavigate, Link } from "react-router-dom";
 import axios from "axios";
+import { axiosInstance } from "../lib/axios";
 import { FaFacebook, FaTwitter, FaShare, FaRegCopy } from "react-icons/fa";
 
 const Projectdetail = () => {
@@ -113,19 +114,17 @@ const Projectdetail = () => {
     }
   };
 
-  const handleStartMentorship = () => {
-        const userId = localStorage.getItem("userId");
-        const token = localStorage.getItem("token");
-
-        if (!userId || !token) {
-            // 🛑 Gated check: Redirect to login if not authenticated
-            alert("Please log in to start a mentorship session.");
-            navigate('/login');
-            return;
-        }
-
-        // ✅ Main action: Navigate to the video chat room
-        navigate(`/chatroom/${id}`);
+  const handleStartMentorship = async () => {
+        try {
+          // check auth via cookie (backend sets jwt cookie)
+          await axiosInstance.get("/auth/me");
+          // authenticated -> go to chatroom
+          navigate(`/chatroom/${id}`);
+        } catch (err) {
+          console.warn("Auth check failed:", err);
+          alert("Please log in to start a mentorship session.");
+          navigate("/login");
+      }
     };
   // 🕓 Loading state
   if (loading) {
