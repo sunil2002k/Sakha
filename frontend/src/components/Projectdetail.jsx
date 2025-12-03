@@ -3,12 +3,15 @@ import { useParams,useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import { axiosInstance } from "../lib/axios";
 import { FaFacebook, FaTwitter, FaShare, FaRegCopy } from "react-icons/fa";
+import PaymentProgress from "./PaymentProgress";
 
 const Projectdetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [project, setProject] = useState(null);
   const [creator, setCreator] = useState(null);
+  const [showCustomAmountInput, setShowCustomAmountInput] = useState(false);
+  const [customAmount, setCustomAmount] = useState("");
   const [loading, setLoading] = useState(true);
   const [paymentLoading, setPaymentLoading] = useState(false);
   const APIURL = import.meta.env.VITE_APP_URL;
@@ -53,65 +56,114 @@ const Projectdetail = () => {
     fetchProjectDetail();
   }, [id]);
 
-  // 🟩 eSewa payment handler
-  const handlePayNow = async () => {
+  const initiatePayment = async (amountToPay) => {
+    if (amountToPay <= 0 || isNaN(amountToPay)) {
+      alert("Please enter a valid amount greater than 0.");
+      return;
+    }
+    
     try {
-      setPaymentLoading(true);
-      const amount = project.targetAmount || 500;
-      const projectId = project._id;
+      // GET auth user (check for login)
+      const meRes = await axiosInstance.get("/auth/me");
+      const authUserData = meRes.data.user;
+      const fundedBy = authUserData._id;
 
-      const { data } = await axios.post(
-        `${APIURL}/api/v1/payments/initiate-payment`,
-        {
-          amount,
-          projectId,
-        }
-      );
-
-      const form = document.createElement("form");
-      form.method = "POST";
-      form.action = "https://rc-epay.esewa.com.np/api/epay/main/v2/form";
-      form.target = "_blank";
-
-      const formData = {
-        amount,
-        tax_amount: 0,
-        total_amount: amount,
-        transaction_uuid: data.transaction_uuid,
-        product_code: "EPAYTEST",
-        product_service_charge: 0,
-        product_delivery_charge: 0,
-        // ask backend to redirect to frontend payment-result after verification
-        success_url: `${APIURL}/api/v1/payments/complete-payment?redirect=${encodeURIComponent(
-          window.location.origin + "/payment-result"
-        )}`,
-        // optional failure redirect
-        failure_url: `${APIURL}/api/v1/payments/complete-payment?redirect=${encodeURIComponent(
-          window.location.origin + "/payment-result?status=failed"
-        )}`,
-        signed_field_names: data.signed_field_names,
-        signature: data.signature,
-      };
-
-      for (let key in formData) {
-        const input = document.createElement("input");
-        input.type = "hidden";
-        input.name = key;
-        input.value = formData[key];
-        form.appendChild(input);
+      if (!fundedBy) {
+        alert("Could not find your user ID. Please re-login.");
+        return;
       }
 
-      document.body.appendChild(form);
-      // use same tab so backend can redirect the browser to frontend payment-result
-      form.target = "_self";
-      form.submit();
-      form.remove();
-    } catch (error) {
-      console.error("Error initiating eSewa payment:", error);
-      alert("Failed to start payment. Please try again.");
-    } finally {
-      setPaymentLoading(false);
+      try {
+        setPaymentLoading(true);
+        const projectId = project._id;
+        const amount = amountToPay; // Use the custom amount
+
+        // Send user id and custom amount to backend
+        const { data } = await axios.post(
+          `${APIURL}/api/v1/payments/initiate-payment`,
+          {
+            amount,
+            projectId,
+            fundedBy,
+          }
+        );
+
+        const form = document.createElement("form");
+        form.method = "POST";
+        form.action = "https://rc-epay.esewa.com.np/api/epay/main/v2/form";
+        form.target = "_blank";
+
+        const formData = {
+          amount,
+          tax_amount: 0,
+          total_amount: amount,
+          transaction_uuid: data.transaction_uuid,
+          product_code: "EPAYTEST",
+          product_service_charge: 0,
+          product_delivery_charge: 0,
+          success_url: `${APIURL}/api/v1/payments/complete-payment?redirect=${encodeURIComponent(
+            window.location.origin + "/payment-result"
+          )}`,
+          failure_url: `${APIURL}/api/v1/payments/complete-payment?redirect=${encodeURIComponent(
+            window.location.origin + "/payment-result?status=failed"
+          )}`,
+          signed_field_names: data.signed_field_names,
+          signature: data.signature,
+        };
+
+        for (let key in formData) {
+          const input = document.createElement("input");
+          input.type = "hidden";
+          input.name = key;
+          input.value = formData[key];
+          form.appendChild(input);
+        }
+
+        document.body.appendChild(form);
+        form.target = "_self"; // Switch target to current window before submit
+        form.submit();
+        form.remove();
+
+      } catch (error) {
+        console.error("Error initiating eSewa payment:", error);
+        alert("Failed to start payment. Please try again.");
+      } finally {
+        setPaymentLoading(false);
+        setShowCustomAmountInput(false); // Close modal on completion
+      }
+    } catch (err) {
+      console.warn("Auth check failed:", err);
+      alert("Please log in to donate.");
+      navigate("/login");
     }
+  };
+  // 🟩 eSewa payment handler
+const handlePayNow = async () => {
+  try {
+    // GET auth user
+    await axiosInstance.get("/auth/me");
+    setShowCustomAmountInput(true);
+        // Set default to targetAmount or 500
+        setCustomAmount(project.targetAmount || 500);  
+  }
+  
+
+
+  catch (err) {
+    console.warn("Auth check failed:", err);
+    alert("Please log in to start a mentorship session.");
+    navigate("/login");
+  }
+};
+
+const handleConfirmPayment = () => {
+      // Check if amount is valid
+      const amount = parseInt(customAmount, 10);
+      if (amount > 0) {
+          initiatePayment(amount);
+      } else {
+          alert("Please enter a valid amount greater than 0.");
+      }
   };
 
   const handleStartMentorship = async () => {
@@ -163,6 +215,46 @@ const Projectdetail = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 pt-20 pb-12 px-4">
+      {/* 💰 Custom Amount Input Modal - ADD THIS SECTION */}
+      {showCustomAmountInput && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 backdrop-blur-sm">
+          <div className="bg-gray-800 p-8 rounded-xl shadow-2xl max-w-sm w-full border border-purple-600/50">
+            <h3 className="text-2xl font-bold text-white mb-4">
+              Enter Donation Amount
+            </h3>
+            <p className="text-gray-300 mb-4">
+              Contribute to **{project.title}**
+            </p>
+            <input
+              type="number"
+              value={customAmount}
+              onChange={(e) => setCustomAmount(e.target.value)}
+              placeholder="Enter amount in NPR"
+              min="1"
+              className="w-full p-3 mb-6 bg-gray-700 border border-purple-500 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+            />
+            <div className="flex justify-end space-x-4">
+              <button
+                onClick={() => setShowCustomAmountInput(false)}
+                className="px-4 py-2 text-gray-300 bg-gray-600 rounded-xl hover:bg-gray-700 transition"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmPayment}
+                disabled={paymentLoading || customAmount <= 0}
+                className={`px-4 py-2 rounded-xl font-semibold transition ${
+                  paymentLoading || customAmount <= 0
+                    ? "bg-purple-700/50 cursor-not-allowed"
+                    : "bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                } text-white`}
+              >
+                {paymentLoading ? "Processing..." : "Pay Now"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="max-w-4xl mx-auto">
         {/* Header Section */}
         <div className="text-center mb-8">
@@ -318,34 +410,41 @@ const Projectdetail = () => {
                 )}
               </div>
             </div>
-
+{project.type === "funding" && project.targetAmount && (
+        <PaymentProgress 
+            projectId={project._id}
+            targetAmount={project.targetAmount}
+            APIURL={APIURL}
+        />
+    )}
             {/* Action Buttons */}
             <div className="bg-white/5 backdrop-blur-lg border border-white/10 rounded-2xl p-6">
-              <h3 className="text-xl font-bold text-white mb-4">Take Action</h3>
+        <h3 className="text-xl font-bold text-white mb-4">Take Action</h3>
 
-              <div className="space-y-4">
-                {project.type === "funding" && (
-                  <button
-                    onClick={handlePayNow}
-                    disabled={paymentLoading}
-                    className={`w-full py-4 rounded-xl font-bold text-lg transition-all duration-300 ${
-                      paymentLoading
-                        ? "bg-gray-600 cursor-not-allowed opacity-50"
-                        : "bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 hover:scale-105 hover:shadow-2xl hover:shadow-green-500/25"
-                    }`}
-                  >
-                    {paymentLoading ? (
-                      <span className="flex items-center justify-center">
-                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2"></div>
-                        Processing...
-                      </span>
-                    ) : (
-                      <span className="flex items-center justify-center">
-                        💰 Fund This Project
-                      </span>
-                    )}
-                  </button>
+          <div className="space-y-4">
+            {project.type === "funding" && (
+              <button
+                // ⚠️ Ensure this calls the updated handlePayNow, which shows the modal
+                onClick={handlePayNow} 
+                disabled={paymentLoading}
+                className={`w-full py-4 rounded-xl font-bold text-lg transition-all duration-300 ${
+                  paymentLoading
+                    ? "bg-gray-600 cursor-not-allowed opacity-50"
+                    : "bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 hover:scale-105 hover:shadow-2xl hover:shadow-green-500/25"
+                }`}
+              >
+                {paymentLoading ? (
+                  <span className="flex items-center justify-center">
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2"></div>
+                    Processing...
+                  </span>
+                ) : (
+                  <span className="flex items-center justify-center">
+                    💰 Fund This Project
+                  </span>
                 )}
+              </button>
+            )}
 
                 {project.type === "mentorship" && (
                   <button onClick={handleStartMentorship}

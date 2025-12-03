@@ -24,6 +24,8 @@ import useAuthUser from "./hooks/useAuthUser.js";
 import { useThemeStore } from "./store/useThemeStore.js";
 
 import { Toaster } from "react-hot-toast";
+import ProfilePage from "./pages/ProfilePage.jsx";
+import KYCFormPage from "./pages/KYCFormPage.jsx";
 
 const App = () => {
   const { isLoading, authUser } = useAuthUser();
@@ -43,8 +45,8 @@ const App = () => {
         {/* Public layout + marketing/product routes */}
         <Route path="/" element={<LayOut />}>
           <Route index element={<Home />} />
-          <Route path="submit" element={<IdeaAnalyzer />} />
-          <Route path="aboutus" element={<About />} />
+          {/* <Route path="submit" element={<IdeaAnalyzer />} /> */}
+          <Route path="about" element={<About />} />
           <Route path="search" element={<Search />} />
           <Route path="projects" element={<Projects />} />
           <Route path="payment-result" element={<PaymentResult />} />
@@ -73,7 +75,19 @@ const App = () => {
           />
         </Route>
 
-        
+        <Route
+          path="/kyc"
+          element={
+            isAuthenticated && isOnboarded ? (
+              <Format showSidebar={false}>
+                <KYCFormPage />
+              </Format>
+            ) : (
+              <Navigate to={redirectForProtected} replace />
+            )
+          }
+        />
+
 
         {/* Notifications */}
         <Route
@@ -88,22 +102,28 @@ const App = () => {
             )
           }
         />
-         <Route
-          path="/chathome"
-          element={
-            isAuthenticated && isOnboarded ? (
-              <Format showSidebar>
-                <ChatHomePage />
-              </Format>
-            ) : (
-              <Navigate to={redirectForProtected} replace />
-            )
-          }
-        />
-         
-{/* Chat home in its own shell */}
         <Route
-          path="/chatroom/:id"
+          path="/submit"
+          element={
+            isAuthenticated && isOnboarded ? (
+              <IdeaAnalyzer />
+            ) : (
+              <Navigate to={redirectForProtected} replace />
+            )
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            isAuthenticated && isOnboarded ? (
+              <ProfilePage />
+            ) : (
+              <Navigate to={redirectForProtected} replace />
+            )
+          }
+        />
+        <Route
+          path="/chatroom"
           element={
             isAuthenticated && isOnboarded ? (
               <Format showSidebar>
@@ -114,6 +134,7 @@ const App = () => {
             )
           }
         />
+
         {/* Video call */}
         <Route
           path="/call/:id"

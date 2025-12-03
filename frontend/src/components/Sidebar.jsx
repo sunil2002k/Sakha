@@ -21,7 +21,7 @@ const Sidebar = () => {
 
       <nav className="flex-1 p-4 space-y-1">
         <Link
-          to="/chatroom/:id"
+          to="/chatroom"
           className={`btn btn-ghost justify-start w-full gap-3 px-3 normal-case ${
             currentPath === "/" ? "btn-active" : ""
           }`}

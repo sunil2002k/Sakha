@@ -35,7 +35,7 @@ const CombinedHeader = () => {
   const navLinks = [
     { name: "Home", path: "/" },
     { name: "Submit", path: "/submit" },
-    { name: "About", path: "/aboutus" },
+    { name: "About", path: "/about" },
   ];
 
   const handleSearch = (e) => {
@@ -85,7 +85,7 @@ const CombinedHeader = () => {
       <div className="mx-auto flex items-center justify-between px-4 py-3 lg:px-8">
         {/* Left: logo + chat badge */}
         <div className="flex items-center gap-4">
-          <Link to="/" className="flex items-center gap-2 text-white">
+          <Link to="/" className="flex items-center gap-2 ">
             <span className="inline-flex h-9 w-9 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-600 via-fuchsia-500 to-indigo-500 shadow-[0_0_18px_rgba(168,85,247,0.9)]">
               <ShipWheelIcon className="h-4 w-4 text-white drop-shadow-[0_0_6px_rgba(15,23,42,0.8)]" />
             </span>

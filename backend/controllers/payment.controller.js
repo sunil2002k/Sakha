@@ -1,47 +1,68 @@
-import Funding from "../models/funding.model.js";
+import mongoose from "mongoose";
 import FundedProject from "../models/fundedProject.model.js";
 import Payment from "../models/payment.model.js";
 import { esewaPaymentHash, verifyEsewa } from "../utils/esewa.js";
 import Project from "../models/project.model.js";
+import User from "../models/user.model.js"
+
 
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
 
 export const initiateEsewaPayment = async (req, res) => {
   try {
-    const { projectId, amount } = req.body;
+    const { projectId, amount, fundedBy } = req.body;
+
+    // Validate project
     const project = await Project.findById(projectId);
     if (!project) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Project not found" });
+      return res.status(404).json({
+        success: false,
+        message: "Project not found",
+      });
     }
 
+    // Validate user
+    const user = await User.findById(fundedBy);
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid user",
+      });
+    }
+
+    // Create pending payment record
     const fundedProject = await FundedProject.create({
       project: projectId,
       amount,
       totalPrice: amount,
+      fundedBy,
       paymentMethod: "esewa",
       status: "pending",
     });
 
+    // Generate eSewa hash
     const paymentInit = await esewaPaymentHash({
       amount,
       transaction_uuid: fundedProject._id.toString(),
     });
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       signature: paymentInit.signature,
       signed_field_names: paymentInit.signed_field_names,
       transaction_uuid: fundedProject._id.toString(),
+      amount,
     });
+
   } catch (error) {
     console.error("Error initiating payment:", error);
-    res
-      .status(500)
-      .json({ success: false, message: "Failed to initiate payment" });
+    return res.status(500).json({
+      success: false,
+      message: "Failed to initiate payment",
+    });
   }
 };
+
 
 /**
  * @desc Verify payment after success and redirect user to frontend payment-result
@@ -124,5 +145,50 @@ export const completeEsewaPayment = async (req, res) => {
     return res.redirect(
       `${redirectTo}${sep}data=${encodeURIComponent(encoded)}`
     );
+  }
+};
+
+
+export const getProjectFundingStatus = async (req, res) => {
+  try {
+    const { id: projectId } = req.params;
+
+    // 1. Calculate the total funded amount
+    const result = await FundedProject.aggregate([
+      {
+        $match: {
+          project: mongoose.Types.ObjectId.createFromHexString(projectId), // Match by projectId
+          status: "completed", // Only include successful payments
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          totalFunded: { $sum: "$totalPrice" }, // Sum the 'amount' field
+        },
+      },
+    ]);
+
+    const totalFunded = result.length > 0 ? result[0].totalFunded : 0;
+
+    // 2. Fetch the project's target amount
+    const project = await Project.findById(projectId).select('targetAmount');
+    const targetAmount = project ? project.targetAmount : 0;
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        totalFunded,
+        targetAmount: targetAmount,
+        progress: targetAmount > 0 ? (totalFunded / targetAmount) * 100 : 0,
+      },
+    });
+
+  } catch (error) {
+    console.error("Error fetching project funding status:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch funding status",
+    });
   }
 };
