@@ -1,6 +1,4 @@
 import express from "express";
-import { createServer } from "http";
-import { Server } from "socket.io";
 import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -13,6 +11,7 @@ import connectToDatabase from "./database/mongodb.js";
 import errorMiddleware from "./middlewares/error.middleware.js";
 import authRouter from "./routes/auth.routes.js";
 import paymentRouter from "./routes/payment.routes.js";
+import kycRouter from "./routes/kyc.routes.js";
 const app = express();
 
 // DEVELOPMENT: allow any origin for dev (restrict in production)
@@ -27,7 +26,7 @@ app.use("/api/v1/users", userRouter);
 app.use("/api/v1/projects", projectRouter);
 app.use("/api/v1/payments", paymentRouter);
 app.use("/api/v1/chat", chatRouter);
-
+app.use("/api/v1/kyc", kycRouter);
 app.use(errorMiddleware);
 
 app.get("/", (req, res) => {

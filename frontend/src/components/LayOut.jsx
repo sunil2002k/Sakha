@@ -6,11 +6,13 @@ import Footer from "./Footer";
 const LayOut = () => {
   return (
     <>
+    <div className="min-h-screen flex flex-col">
       <Navbar />
-      <main className="relative z-10 ">
+      <main className="relative z-10 flex-grow ">
         <Outlet />
       </main>
       <Footer />
+      </div>
     </>
   );
 };

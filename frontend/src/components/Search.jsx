@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useLocation, Link } from "react-router-dom";
 import axios from "axios";
+import toast from "react-hot-toast";
+
 
 const Search = () => {
   const [projects, setProjects] = useState([]);
@@ -20,7 +22,6 @@ const Search = () => {
           `${APIURL}/api/v1/projects/search?q=${query}`
         );
         if (res.data.projects.length > 0) {
-          // console.log(res.data.projects);
           setProjects(res.data.projects);
           setMessage("");
         } else {
@@ -28,7 +29,7 @@ const Search = () => {
           setMessage("No matching projects found.");
         }
       } catch (error) {
-        console.error("Error fetching search results:", error);
+        toast.error("Error fetching search results:", error);
         setMessage("Error fetching results. Please try again.");
       } finally {
         setLoading(false);

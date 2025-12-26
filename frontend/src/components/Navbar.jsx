@@ -11,6 +11,7 @@ import { BellIcon, LogOutIcon, ShipWheelIcon } from "lucide-react";
 import ThemeSelector from "./ThemeSelector";
 import useAuthUser from "../hooks/useAuthUser";
 import useLogout from "../hooks/useLogout";
+import logo from '../assets/logo.png'
 
 const CombinedHeader = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -81,19 +82,19 @@ const CombinedHeader = () => {
   }, [showUserPopup]);
 
   return (
-    <header className="w-full bg-slate-950/80 backdrop-blur-xl border-b border-white/10 shadow-[0_0_30px_rgba(15,23,42,0.8)]  z-50 sticky">
+    <header className="w-full bg-slate-950/80 backdrop-blur-xl border-b border-white/10 shadow-[0_0_30px_rgba(15,23,42,0.8)]  z-50 sticky top-0">
       <div className="mx-auto flex items-center justify-between px-4 py-3 lg:px-8">
-        {/* Left: logo + chat badge */}
         <div className="flex items-center gap-4">
           <Link to="/" className="flex items-center gap-2 ">
-            <span className="inline-flex h-9 w-9 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-600 via-fuchsia-500 to-indigo-500 shadow-[0_0_18px_rgba(168,85,247,0.9)]">
-              <ShipWheelIcon className="h-4 w-4 text-white drop-shadow-[0_0_6px_rgba(15,23,42,0.8)]" />
+            <span className="inline-flex items-center">
+              <img
+                src={logo}
+                alt="Brand Logo"
+                className="h-8 md:h-10 w-auto object-contain brightness-125 contrast-125 drop-shadow-lg"
+              />
             </span>
-            <span className="inline-flex items-center rounded-full border border-white/10 bg-gradient-to-r from-purple-500/20 via-blue-500/20 to-teal-400/20 px-3 py-1 text-sm font-semibold tracking-wide text-white/90">
-              Sakha
-            </span>
-          </Link>
 
+          </Link>
           {isChatPage && (
             <Link
               to="/chat"
@@ -137,10 +138,9 @@ const CombinedHeader = () => {
                 key={link.name}
                 to={link.path}
                 className={({ isActive }) =>
-                  `text-xs md:text-sm px-3 py-1 rounded-full font-medium tracking-wide transition-all duration-200 ${
-                    isActive
-                      ? "bg-purple-600/30 text-purple-200 border border-purple-500/60 shadow-[0_0_12px_rgba(168,85,247,0.7)]"
-                      : "text-white/85 hover:bg-white/7 hover:text-purple-100 border border-transparent"
+                  `text-xs md:text-sm px-3 py-1 rounded-full font-medium tracking-wide transition-all duration-200 ${isActive
+                    ? "bg-purple-600/30 text-purple-200 border border-purple-500/60 shadow-[0_0_12px_rgba(168,85,247,0.7)]"
+                    : "text-white/85 hover:bg-white/7 hover:text-purple-100 border border-transparent"
                   }`
                 }
               >
@@ -163,9 +163,9 @@ const CombinedHeader = () => {
           {/* //** todo */}
           {authUser && (
             <div className="hidden md:flex items-center ml-2 relative">
-              
+
               {/* <ThemeSelector /> */}
-          </div>
+            </div>
           )}
           {/* User / auth popup */}
           <div className="relative" ref={popupRef}>
@@ -310,10 +310,9 @@ const CombinedHeader = () => {
                 to={link.path}
                 onClick={() => setIsOpen(false)}
                 className={({ isActive }) =>
-                  `mt-1 rounded-lg px-3 py-2 text-sm font-medium transition-all ${
-                    isActive
-                      ? "bg-purple-600/25 text-purple-100 border border-purple-500/60 shadow-[0_0_12px_rgba(168,85,247,0.7)]"
-                      : "text-white/90 border border-transparent hover:bg-white/5 hover:text-purple-100"
+                  `mt-1 rounded-lg px-3 py-2 text-sm font-medium transition-all ${isActive
+                    ? "bg-purple-600/25 text-purple-100 border border-purple-500/60 shadow-[0_0_12px_rgba(168,85,247,0.7)]"
+                    : "text-white/90 border border-transparent hover:bg-white/5 hover:text-purple-100"
                   }`
                 }
               >

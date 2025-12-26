@@ -26,6 +26,7 @@ import { useThemeStore } from "./store/useThemeStore.js";
 import { Toaster } from "react-hot-toast";
 import ProfilePage from "./pages/ProfilePage.jsx";
 import KYCFormPage from "./pages/KYCFormPage.jsx";
+import FriendsPage from "./pages/FriendsPage.jsx";
 
 const App = () => {
   const { isLoading, authUser } = useAuthUser();
@@ -128,6 +129,18 @@ const App = () => {
             isAuthenticated && isOnboarded ? (
               <Format showSidebar>
                 <ChatHomePage />
+              </Format>
+            ) : (
+              <Navigate to={redirectForProtected} replace />
+            )
+          }
+        />
+        <Route
+          path="/friends"
+          element={
+            isAuthenticated && isOnboarded ? (
+              <Format showSidebar>
+                <FriendsPage />
               </Format>
             ) : (
               <Navigate to={redirectForProtected} replace />

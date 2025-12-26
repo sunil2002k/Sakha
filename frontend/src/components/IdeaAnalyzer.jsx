@@ -1,6 +1,8 @@
 import React, { useState, useRef } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
+
 
 const IdeaAnalyzer = () => {
   const [pdfFile, setPdfFile] = useState(null);
@@ -84,9 +86,9 @@ const IdeaAnalyzer = () => {
 
     const token = localStorage.getItem("token");
     if (!token) {
-      alert("Please login to submit a project.");
+      toast.error("Please login to submit a project.");
       setLoading(false);
-      sSubmittingRef.current = false;
+      isSubmittingRef.current = false;
       navigate("/login");
       return;
     }
@@ -108,10 +110,6 @@ const IdeaAnalyzer = () => {
       formDataToSubmit.append("images", image);
     });
 
-    // // Optional: Append PDF file if needed
-    // if (pdfFile) {
-    //   formDataToSubmit.append("pdfFile", pdfFile);
-    // }
 
     try {
       // send Authorization header with Bearer token
@@ -122,10 +120,10 @@ const IdeaAnalyzer = () => {
         },
       });
 
-      alert("Project submitted successfully!");
+      toast.success("Project submitted successfully!");
       navigate(`/project/${res.data.project._id}`);
     } catch (error) {
-      console.error("Submission error:", error.response?.data || error.message);
+    toast.error("Submission error:", error.response?.data || error.message);
       alert(
         error.response?.data?.message ||
           "Submission failed. Check the console for details."
