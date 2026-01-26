@@ -8,11 +8,12 @@ import NotificationsPage from "./pages/NotificationsPage.jsx";
 import CallPage from "./pages/CallPage.jsx";
 import ChatPage from "./pages/ChatPage.jsx";
 import OnboardingPage from "./pages/OnboardingPage.jsx";
+import AdminDashboard from "./pages/AdminDashboard.jsx";
+import ProjectdetailPage from "./pages/ProjectdetailPage.jsx";
 
 import Home from "./components/Home.jsx";
 import IdeaAnalyzer from "./components/IdeaAnalyzer.jsx";
 import About from "./components/About.jsx";
-import Projectdetail from "./components/Projectdetail.jsx";
 import Search from "./components/Search.jsx";
 import Projects from "./components/Projects.jsx";
 import PaymentResult from "./components/PaymentResult.jsx";
@@ -34,6 +35,7 @@ const App = () => {
 
   const isAuthenticated = Boolean(authUser);
   const isOnboarded = authUser?.isOnboarded;
+  const isAdmin = authUser?.role === "admin";
 
   if (isLoading) return <PageLoader />;
 
@@ -41,19 +43,25 @@ const App = () => {
   const redirectForProtected = !isAuthenticated ? "/login" : "/onboarding";
 
   return (
-    <div className="h-screen" data-theme={theme}>
+    <div data-theme={theme}>
       <Routes>
-        {/* Public layout + marketing/product routes */}
         <Route path="/" element={<LayOut />}>
           <Route index element={<Home />} />
-          {/* <Route path="submit" element={<IdeaAnalyzer />} /> */}
           <Route path="about" element={<About />} />
           <Route path="search" element={<Search />} />
           <Route path="projects" element={<Projects />} />
           <Route path="payment-result" element={<PaymentResult />} />
-          <Route path="project/:id" element={<Projectdetail />} />
+          <Route path="project/:id" element={<ProjectdetailPage />} />
+          <Route path="submit" element={
+            isAuthenticated && isOnboarded ? (
+              <IdeaAnalyzer />
+            ) : (
+              <Navigate to={redirectForProtected} replace />
+            )
+          }
+          />
 
-          {/* Auth routes inside layout */}
+          {/* Auth routes */}
           <Route
             path="signup"
             element={
@@ -76,6 +84,22 @@ const App = () => {
           />
         </Route>
 
+
+        <Route
+          path="/admin/dashboard"
+          element={
+            isAuthenticated && isAdmin ? (
+              <Format showSidebar={true}>
+                <AdminDashboard />
+              </Format>
+            ) : (
+              <Navigate to="/" replace />
+            )
+          }
+        />
+
+
+
         <Route
           path="/kyc"
           element={
@@ -89,8 +113,6 @@ const App = () => {
           }
         />
 
-
-        {/* Notifications */}
         <Route
           path="/notifications"
           element={
@@ -103,16 +125,8 @@ const App = () => {
             )
           }
         />
-        <Route
-          path="/submit"
-          element={
-            isAuthenticated && isOnboarded ? (
-              <IdeaAnalyzer />
-            ) : (
-              <Navigate to={redirectForProtected} replace />
-            )
-          }
-        />
+
+
         <Route
           path="/profile"
           element={
@@ -123,6 +137,7 @@ const App = () => {
             )
           }
         />
+
         <Route
           path="/chatroom"
           element={
@@ -135,6 +150,7 @@ const App = () => {
             )
           }
         />
+
         <Route
           path="/friends"
           element={
@@ -148,7 +164,6 @@ const App = () => {
           }
         />
 
-        {/* Video call */}
         <Route
           path="/call/:id"
           element={
@@ -160,7 +175,6 @@ const App = () => {
           }
         />
 
-        {/* 1–1 chat */}
         <Route
           path="/chat/:id"
           element={
@@ -174,7 +188,6 @@ const App = () => {
           }
         />
 
-        {/* Onboarding */}
         <Route
           path="/onboarding"
           element={

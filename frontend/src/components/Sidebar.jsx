@@ -13,8 +13,11 @@ const Sidebar = () => {
     <aside className="w-64 bg-base-200 border-r border-base-300 hidden lg:flex flex-col h-screen sticky top-0">
       <div className="p-5 border-b border-base-300">
         <Link to="/" className="flex items-center gap-2.5">
-        <img className="size-9 text-primary" src={logo} alt="logo" />
-          
+          <img 
+            className="h-8 w-auto object-contain brightness-125 contrast-125" 
+            src={logo} 
+            alt="logo" 
+          />
         </Link>
       </div>
 

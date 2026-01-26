@@ -1,6 +1,18 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
+import { 
+  Search, 
+  Filter, 
+  Coins, 
+  Users, 
+  ArrowRight, 
+  LayoutGrid, 
+  Layers, 
+  XCircle,
+  TrendingUp,
+  ChevronDown
+} from "lucide-react";
 
 const Projects = () => {
   const [projects, setProjects] = useState([]);
@@ -13,7 +25,6 @@ const Projects = () => {
 
   const APIURL = import.meta.env.VITE_APP_URL;
 
-  // Fetch all projects
   const fetchProjects = async () => {
     try {
       const res = await axios.get(`${APIURL}/api/v1/projects/showproject`);
@@ -29,24 +40,14 @@ const Projects = () => {
 
   useEffect(() => {
     fetchProjects();
-    
   }, []);
 
-  // Extract unique categories
-  const categories = [
-    "all",
-    ...new Set(projects.map((proj) => proj.category).filter(Boolean)),
-  ];
-  const types = [
-    "all",
-    ...new Set(projects.map((proj) => proj.type).filter(Boolean)),
-  ];
+  const categories = ["all", ...new Set(projects.map((proj) => proj.category).filter(Boolean))];
+  const types = ["all", ...new Set(projects.map((proj) => proj.type).filter(Boolean))];
 
-  // Filter and sort projects
   useEffect(() => {
     let result = projects;
 
-    // Search filter
     if (searchQuery) {
       result = result.filter(
         (proj) =>
@@ -56,27 +57,20 @@ const Projects = () => {
       );
     }
 
-    // Category filter
     if (selectedCategory !== "all") {
       result = result.filter((proj) => proj.category === selectedCategory);
     }
 
-    // Type filter
     if (selectedType !== "all") {
       result = result.filter((proj) => proj.type === selectedType);
     }
 
-    // Sorting
     switch (sortBy) {
       case "newest":
-        result = [...result].sort(
-          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
-        );
+        result = [...result].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
         break;
       case "oldest":
-        result = [...result].sort(
-          (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
-        );
+        result = [...result].sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
         break;
       case "title":
         result = [...result].sort((a, b) => a.title?.localeCompare(b.title));
@@ -88,7 +82,6 @@ const Projects = () => {
     setFilteredProjects(result);
   }, [projects, searchQuery, selectedCategory, selectedType, sortBy]);
 
-  // Clear all filters
   const clearFilters = () => {
     setSearchQuery("");
     setSelectedCategory("all");
@@ -97,315 +90,187 @@ const Projects = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 pt-20 pb-12 px-4">
+    <div className="min-h-screen bg-base-100 text-base-content pt-24 pb-12 px-4 transition-colors duration-300">
       <div className="max-w-7xl mx-auto">
+        
         {/* Header Section */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-white via-purple-200 to-pink-200 bg-clip-text text-transparent">
-            Explore <span className="text-purple-400">Projects</span>
+        <div className="text-center mb-16">
+          <h1 className="text-4xl md:text-6xl font-black mb-6 tracking-tight uppercase">
+            Explore <span className="text-primary underline underline-offset-8 decoration-wavy decoration-2">Projects</span>
           </h1>
-          <p className="text-lg md:text-xl text-gray-300 max-w-2xl mx-auto">
-            Discover innovative projects from our community. Find inspiration,
-            collaborate, and support amazing ideas.
+          <p className="text-lg opacity-60 max-w-2xl mx-auto font-medium leading-relaxed">
+            Discover innovative projects from our community. Find inspiration, 
+            collaborate, and support the next generation of builders.
           </p>
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white/5 backdrop-blur-lg border border-white/10 rounded-xl p-6 text-center">
-            <div className="text-2xl md:text-3xl font-bold text-white mb-2">
-              {projects.length}
+        {/* Stats Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
+          {[
+            { label: "Total Projects", value: projects.length, icon: <LayoutGrid className="size-5" /> },
+            { label: "Funding", value: projects.filter(p => p.type === "funding").length, icon: <Coins className="size-5" /> },
+            { label: "Mentorship", value: projects.filter(p => p.type === "mentorship").length, icon: <Users className="size-5" /> },
+            { label: "Categories", value: categories.length - 1, icon: <Layers className="size-5" /> }
+          ].map((stat, i) => (
+            <div key={i} className="bg-base-200 border border-base-300 p-6 rounded-3xl text-center flex flex-col items-center group hover:border-primary/40 transition-colors">
+              <div className="p-3 bg-primary/10 text-primary rounded-2xl mb-3 group-hover:scale-110 transition-transform">
+                {stat.icon}
+              </div>
+              <div className="text-2xl font-black">{stat.value}</div>
+              <div className="text-xs font-bold uppercase tracking-widest opacity-50">{stat.label}</div>
             </div>
-            <div className="text-gray-400">Total Projects</div>
-          </div>
-          <div className="bg-white/5 backdrop-blur-lg border border-white/10 rounded-xl p-6 text-center">
-            <div className="text-2xl md:text-3xl font-bold text-white mb-2">
-              {projects.filter((p) => p.type === "funding").length}
-            </div>
-            <div className="text-gray-400">Funding Projects</div>
-          </div>
-          <div className="bg-white/5 backdrop-blur-lg border border-white/10 rounded-xl p-6 text-center">
-            <div className="text-2xl md:text-3xl font-bold text-white mb-2">
-              {projects.filter((p) => p.type === "mentorship").length}
-            </div>
-            <div className="text-gray-400">Mentorship Projects</div>
-          </div>
-          <div className="bg-white/5 backdrop-blur-lg border border-white/10 rounded-xl p-6 text-center">
-            <div className="text-2xl md:text-3xl font-bold text-white mb-2">
-              {categories.length - 1}
-            </div>
-            <div className="text-gray-400">Categories</div>
-          </div>
+          ))}
         </div>
 
-        {/* Filters and Search */}
-        <div className="bg-white/5 backdrop-blur-lg border border-white/10 rounded-2xl p-6 mb-8">
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 items-end">
+        {/* Search & Filter Bar */}
+        <div className="bg-base-200/50 backdrop-blur-md border border-base-300 rounded-[2.5rem] p-8 mb-12">
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-end">
+            
             {/* Search */}
-            <div className="lg:col-span-2">
-              <label className="block text-white mb-2 font-medium">
-                Search Projects
-              </label>
-              <div className="relative">
+            <div className="lg:col-span-2 space-y-2">
+              <label className="text-xs font-black uppercase tracking-widest opacity-60 ml-1">Search</label>
+              <div className="relative group">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 size-5 opacity-40 group-focus-within:text-primary group-focus-within:opacity-100 transition-all" />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search by title, description, or tech stack..."
-                  className="w-full p-3 bg-white/10 border border-white/10 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent backdrop-blur-lg"
+                  placeholder="Title, tech stack, or description..."
+                  className="input input-bordered w-full pl-12 rounded-2xl bg-base-100 focus:border-primary transition-all font-medium"
                 />
-                <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-                  🔍
-                </div>
               </div>
             </div>
 
-            {/* Category Filter */}
-            <div>
-              <label className="block text-white mb-2 font-medium">
-                Category
-              </label>
-              <select
-                value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
-                className="w-full p-3 bg-white/10 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent backdrop-blur-lg"
-              >
-                {categories.map((category) => (
-                  <option
-                    key={category}
-                    value={category}
-                    className="bg-gray-800"
-                  >
-                    {category.charAt(0).toUpperCase() + category.slice(1)}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Type Filter */}
-            <div>
-              <label className="block text-white mb-2 font-medium">
-                Project Type
-              </label>
-              <select
-                value={selectedType}
-                onChange={(e) => setSelectedType(e.target.value)}
-                className="w-full p-3 bg-white/10 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent backdrop-blur-lg"
-              >
-                {types.map((type) => (
-                  <option key={type} value={type} className="bg-gray-800">
-                    {type.charAt(0).toUpperCase() + type.slice(1)}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Sort */}
-            <div>
-              <label className="block text-white mb-2 font-medium">
-                Sort By
-              </label>
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="w-full p-3 bg-white/10 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent backdrop-blur-lg"
-              >
-                <option value="newest" className="bg-gray-800">
-                  Newest First
-                </option>
-                <option value="oldest" className="bg-gray-800">
-                  Oldest First
-                </option>
-                <option value="title" className="bg-gray-800">
-                  Title A-Z
-                </option>
-              </select>
-            </div>
+            {/* Selects */}
+            {[
+              { label: "Category", val: selectedCategory, set: setSelectedCategory, options: categories },
+              { label: "Type", val: selectedType, set: setSelectedType, options: types },
+              { label: "Sort By", val: sortBy, set: setSortBy, options: ["newest", "oldest", "title"] }
+            ].map((filter, i) => (
+              <div key={i} className="space-y-2">
+                <label className="text-xs font-black uppercase tracking-widest opacity-60 ml-1">{filter.label}</label>
+                <select
+                  value={filter.val}
+                  onChange={(e) => filter.set(e.target.value)}
+                  className="select select-bordered w-full rounded-2xl bg-base-100 font-bold text-sm"
+                >
+                  {filter.options.map((opt) => (
+                    <option key={opt} value={opt}>
+                      {opt.charAt(0).toUpperCase() + opt.slice(1).replace('_', ' ')}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            ))}
           </div>
 
-          {/* Clear Filters */}
-          {(searchQuery ||
-            selectedCategory !== "all" ||
-            selectedType !== "all" ||
-            sortBy !== "newest") && (
-            <div className="mt-4 flex justify-end">
-              <button
-                onClick={clearFilters}
-                className="px-4 py-2 text-purple-300 hover:text-purple-200 transition-colors flex items-center"
-              >
-                Clear All Filters
-                <span className="ml-2">×</span>
+          {/* Reset Filters */}
+          {(searchQuery || selectedCategory !== "all" || selectedType !== "all" || sortBy !== "newest") && (
+            <div className="mt-6 flex justify-end">
+              <button onClick={clearFilters} className="btn btn-ghost btn-sm text-error font-black uppercase tracking-tighter hover:bg-error/10">
+                <XCircle className="size-4 mr-2" /> Reset All Filters
               </button>
             </div>
           )}
         </div>
 
-        {/* Results Count */}
-        <div className="mb-6 flex justify-between items-center">
-          <p className="text-gray-300">
-            Showing{" "}
-            <span className="text-white font-semibold">
-              {filteredProjects.length}
-            </span>{" "}
-            of{" "}
-            <span className="text-white font-semibold">{projects.length}</span>{" "}
-            projects
-          </p>
+        {/* Results Info */}
+        <div className="mb-8 flex items-center justify-between">
+            <h2 className="text-sm font-bold opacity-60">
+              Showing <span className="text-base-content">{filteredProjects.length}</span> results
+            </h2>
         </div>
 
-        {/* Projects Grid */}
+        {/* Main Content */}
         {loading ? (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {[1, 2, 3, 4, 5, 6].map((n) => (
-              <div
-                key={n}
-                className="bg-white/5 rounded-2xl p-6 animate-pulse border border-white/10"
-              >
-                <div className="h-6 bg-gray-700 rounded mb-4"></div>
-                <div className="h-4 bg-gray-700 rounded mb-2"></div>
-                <div className="h-4 bg-gray-700 rounded w-3/4 mb-4"></div>
-                <div className="h-6 bg-gray-700 rounded w-1/2"></div>
-              </div>
+              <div key={n} className="bg-base-200 h-80 rounded-3xl animate-pulse"></div>
             ))}
           </div>
         ) : filteredProjects.length === 0 ? (
-          <div className="text-center py-16 bg-white/5 rounded-2xl border border-white/10 backdrop-blur-lg">
-            <div className="text-6xl mb-4">🔍</div>
-            <h3 className="text-2xl font-bold text-white mb-2">
-              No Projects Found
-            </h3>
-            <p className="text-gray-400 mb-6 max-w-md mx-auto">
-              {projects.length === 0
-                ? "No projects have been submitted yet. Be the first to share your idea!"
-                : "No projects match your current filters. Try adjusting your search criteria."}
-            </p>
-            {projects.length === 0 ? (
-              <Link
-                to="/submit"
-                className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl font-semibold text-white hover:from-purple-700 hover:to-pink-700 transition"
-              >
-                Submit First Project
-              </Link>
-            ) : (
-              <button
-                onClick={clearFilters}
-                className="inline-flex items-center px-6 py-3 border border-purple-400/50 text-purple-300 rounded-xl font-semibold hover:bg-purple-500/10 hover:border-purple-300 transition"
-              >
-                Clear Filters
-              </button>
-            )}
+          <div className="card bg-base-200 border-2 border-dashed border-base-300 py-20 text-center rounded-[3rem]">
+            <div className="flex flex-col items-center max-w-md mx-auto px-6">
+              <div className="w-20 h-20 bg-base-300 rounded-full flex items-center justify-center mb-6">
+                <Search className="size-10 opacity-20" />
+              </div>
+              <h3 className="text-2xl font-black mb-2">No projects match</h3>
+              <p className="opacity-60 font-medium mb-8">Try adjusting your filters or search keywords to find what you're looking for.</p>
+              <button onClick={clearFilters} className="btn btn-primary rounded-full px-8">Clear Everything</button>
+            </div>
           </div>
         ) : (
-          <>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {filteredProjects.map((proj) => (
-                <Link
-                  to={`/project/${proj._id}`}
-                  key={proj._id}
-                  className="group"
-                >
-                  <div className="relative bg-white/5 backdrop-blur-lg border border-white/10 rounded-2xl p-6 hover:border-purple-400/50 transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-purple-500/10 overflow-hidden h-full flex flex-col">
-                    {/* Gradient overlay on hover */}
-                    <div className="absolute inset-0 bg-gradient-to-r from-purple-600/0 to-pink-600/0 group-hover:from-purple-600/10 group-hover:to-pink-600/10 transition-all duration-500"></div>
-
-                    {/* Project Type Badge */}
-                    <div className="flex justify-between items-start mb-4 relative z-10">
-                      <span
-                        className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
-                          proj.type === "funding"
-                            ? "bg-green-500/20 text-green-300 border border-green-500/30"
-                            : "bg-blue-500/20 text-blue-300 border border-blue-500/30"
-                        }`}
-                      >
-                        {proj.type === "funding"
-                          ? "💰 Funding"
-                          : "👥 Mentorship"}
-                      </span>
-
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {filteredProjects.map((proj) => (
+              <Link to={`/project/${proj._id}`} key={proj._id} className="group">
+                <div className="card bg-base-100 border border-base-300 h-full hover:shadow-2xl hover:shadow-primary/5 transition-all duration-500 hover:-translate-y-2 rounded-[2rem] overflow-hidden">
+                  <div className="card-body p-8">
+                    
+                    {/* Badge Row */}
+                    <div className="flex justify-between items-start mb-6">
+                      <div className={`badge badge-lg gap-2 font-black text-[10px] uppercase tracking-widest py-4 px-4 rounded-xl border-none ${
+                        proj.type === 'funding' ? 'bg-success/10 text-success' : 'bg-info/10 text-info'
+                      }`}>
+                        {proj.type === 'funding' ? <Coins className="size-3" /> : <Users className="size-3" />}
+                        {proj.type}
+                      </div>
+                      
                       {proj.type === "funding" && proj.targetAmount && (
-                        <span className="text-yellow-400 text-sm font-semibold">
-                          NPR {parseInt(proj.targetAmount).toLocaleString()}
-                        </span>
+                        <div className="text-right">
+                          <p className="text-[10px] font-black uppercase opacity-40 tracking-widest">Target</p>
+                          <p className="font-black text-primary">NPR {parseInt(proj.targetAmount).toLocaleString()}</p>
+                        </div>
                       )}
                     </div>
 
-                    {/* Project Title */}
-                    <h3 className="text-xl font-bold text-white mb-3 relative z-10 group-hover:text-purple-300 transition-colors line-clamp-2">
+                    {/* Content */}
+                    <h3 className="text-xl font-black mb-2 group-hover:text-primary transition-colors line-clamp-2 leading-tight">
                       {proj.title}
                     </h3>
-
-                    {/* Category */}
-                    <div className="mb-4 relative z-10">
-                      <span className="inline-block px-3 py-1 bg-purple-500/20 text-purple-300 rounded-full text-sm border border-purple-500/30">
-                        {proj.category}
-                      </span>
+                    
+                    <div className="badge badge-outline border-base-300 text-[10px] font-bold uppercase mb-4">
+                      {proj.category}
                     </div>
 
-                    {/* Description */}
-                    <p className="text-gray-300 text-sm leading-relaxed relative z-10 mb-4 flex-grow line-clamp-3">
+                    <p className="text-sm opacity-60 font-medium line-clamp-3 mb-6 leading-relaxed">
                       {proj.description}
                     </p>
 
                     {/* Tech Stack */}
                     {proj.tech_stack && (
-                      <div className="mb-4 relative z-10">
-                        <p className="text-gray-400 text-xs font-semibold mb-1">
-                          Tech Stack:
-                        </p>
-                        <p className="text-gray-300 text-sm line-clamp-2">
-                          {proj.tech_stack}
-                        </p>
+                      <div className="mb-6 p-3 bg-base-200 rounded-xl">
+                        <p className="text-[9px] font-black uppercase opacity-40 tracking-tighter mb-1">Built With</p>
+                        <p className="text-xs font-bold truncate opacity-80">{proj.tech_stack}</p>
                       </div>
                     )}
 
                     {/* Footer */}
-                    <div className="flex justify-between items-center mt-auto pt-4 border-t border-white/10 relative z-10">
-                      <span className="text-gray-400 text-sm">
-                        {new Date(proj.createdAt).toLocaleDateString()}
+                    <div className="mt-auto pt-6 border-t border-base-300 flex items-center justify-between">
+                      <span className="text-[10px] font-black opacity-40 uppercase tracking-widest">
+                        {new Date(proj.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
                       </span>
-                      <div className="text-purple-400 opacity-0 group-hover:opacity-100 transform translate-x-2 group-hover:translate-x-0 transition-all duration-300">
-                        View Details →
+                      <div className="flex items-center gap-2 text-xs font-black uppercase tracking-tighter text-primary group-hover:gap-4 transition-all">
+                        Details <ArrowRight className="size-4" />
                       </div>
                     </div>
                   </div>
-                </Link>
-              ))}
-            </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
 
-            {/* Load More (if needed in future) */}
-            {filteredProjects.length > 0 && (
-              <div className="text-center mt-12">
-                <p className="text-gray-400 mb-4">
-                  Showing all {filteredProjects.length} projects
-                </p>
-                <Link
-                  to="/submit"
-                  className="inline-flex items-center px-6 py-3 border border-purple-400/50 text-purple-300 rounded-xl font-semibold hover:bg-purple-500/10 hover:border-purple-300 transition-all duration-300"
-                >
-                  Submit Your Project
-                  <span className="ml-2">🚀</span>
-                </Link>
-              </div>
-            )}
-          </>
+        {/* Bottom CTA */}
+        {!loading && filteredProjects.length > 0 && (
+          <div className="mt-20 text-center bg-primary text-primary-content p-12 rounded-[3rem] shadow-xl shadow-primary/20">
+            <h2 className="text-3xl font-black mb-4 uppercase tracking-tighter">Have a brilliant idea?</h2>
+            <p className="opacity-80 font-medium mb-8 max-w-md mx-auto">Join the hundreds of creators who have launched their projects on Sakha.</p>
+            <Link to="/submit" className="btn btn-neutral rounded-full px-12 border-none shadow-lg">
+              Submit Your Project <TrendingUp className="size-4 ml-2" />
+            </Link>
+          </div>
         )}
       </div>
-
-      {/* Add CSS for line clamp utility */}
-      <style jsx>{`
-        .line-clamp-2 {
-          display: -webkit-box;
-          -webkit-line-clamp: 2;
-          -webkit-box-orient: vertical;
-          overflow: hidden;
-        }
-        .line-clamp-3 {
-          display: -webkit-box;
-          -webkit-line-clamp: 3;
-          -webkit-box-orient: vertical;
-          overflow: hidden;
-        }
-      `}</style>
     </div>
   );
 };

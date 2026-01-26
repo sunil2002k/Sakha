@@ -1,3 +1,4 @@
+// filepath: c:\Users\kunwa\OneDrive\Desktop\BE_Notes\8th sem\Project III\Sakha\frontend\src\components\Navbar.jsx
 import React, { useState, useRef, useEffect } from "react";
 import { Link, NavLink, useNavigate, useLocation } from "react-router-dom";
 import {
@@ -7,13 +8,13 @@ import {
   FaSearch,
   FaTimesCircle,
 } from "react-icons/fa";
-import { BellIcon, LogOutIcon, ShipWheelIcon } from "lucide-react";
+import { BellIcon, LogOutIcon } from "lucide-react";
 import ThemeSelector from "./ThemeSelector";
 import useAuthUser from "../hooks/useAuthUser";
 import useLogout from "../hooks/useLogout";
 import logo from '../assets/logo.png'
 
-const CombinedHeader = () => {
+const CombinedHeader = ({ hideLogo}) => {
   const [isOpen, setIsOpen] = useState(false);
   const [showUserPopup, setShowUserPopup] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -37,6 +38,9 @@ const CombinedHeader = () => {
     { name: "Home", path: "/" },
     { name: "Submit", path: "/submit" },
     { name: "About", path: "/about" },
+    ...(authUser?.role === "admin" 
+    ? [{ name: "Admin Panel", path: "/admin/dashboard" }] 
+    : [])
   ];
 
   const handleSearch = (e) => {
@@ -82,26 +86,18 @@ const CombinedHeader = () => {
   }, [showUserPopup]);
 
   return (
-    <header className="w-full bg-slate-950/80 backdrop-blur-xl border-b border-white/10 shadow-[0_0_30px_rgba(15,23,42,0.8)]  z-50 sticky top-0">
+    <header className="w-full bg-base-100/80 backdrop-blur-xl border-b border-base-300 shadow-[0_0_30px_rgba(15,23,42,0.8)] z-50 sticky top-0">
       <div className="mx-auto flex items-center justify-between px-4 py-3 lg:px-8">
         <div className="flex items-center gap-4">
-          <Link to="/" className="flex items-center gap-2 ">
-            <span className="inline-flex items-center">
-              <img
-                src={logo}
-                alt="Brand Logo"
-                className="h-8 md:h-10 w-auto object-contain brightness-125 contrast-125 drop-shadow-lg"
-              />
-            </span>
-
-          </Link>
-          {isChatPage && (
-            <Link
-              to="/chat"
-              className="hidden md:inline-flex items-center gap-2 rounded-full bg-slate-900/80 px-3 py-1 text-xs font-semibold text-slate-100 border border-slate-700/70 shadow-[0_0_10px_rgba(15,23,42,0.8)]"
-            >
-              <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.9)]" />
-              <span>Streamify chat</span>
+          {!hideLogo && (
+            <Link to="/" className="flex items-center gap-2">
+              <span className="inline-flex items-center">
+                <img
+                  src={logo}
+                  alt="Brand Logo"
+                  className="h-8 md:h-10 w-auto object-contain brightness-125 contrast-125 drop-shadow-lg"
+                />
+              </span>
             </Link>
           )}
         </div>
@@ -109,20 +105,20 @@ const CombinedHeader = () => {
         {/* Center: desktop search */}
         <div className="hidden flex-1 px-6 md:block">
           <form onSubmit={handleSearch} className="relative max-w-xl mx-auto">
-            <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300" />
+            <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-base-content/70" />
             <input
               ref={searchInputRef}
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search projects, people, or ideas..."
-              className="w-full px-4 py-2 pl-10 pr-10 bg-white/8 dark:bg-slate-900/80 border border-white/15 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500/80 focus:border-transparent backdrop-blur-md text-white placeholder-gray-400 text-sm shadow-[0_0_12px_rgba(15,23,42,0.9)] transition-transform duration-150 hover:bg-white/12 focus:scale-[1.01]"
+              className="w-full px-4 py-2 pl-10 pr-10 bg-base-200/80 border border-base-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/80 focus:border-transparent backdrop-blur-md text-base-content placeholder-base-content/50 text-sm shadow-[0_0_12px_rgba(15,23,42,0.9)] transition-transform duration-150 hover:bg-base-200 focus:scale-[1.01]"
             />
             {searchQuery && (
               <button
                 type="button"
                 onClick={clearSearch}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-300 hover:text-white"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-base-content/70 hover:text-base-content"
               >
                 <FaTimesCircle />
               </button>
@@ -139,8 +135,8 @@ const CombinedHeader = () => {
                 to={link.path}
                 className={({ isActive }) =>
                   `text-xs md:text-sm px-3 py-1 rounded-full font-medium tracking-wide transition-all duration-200 ${isActive
-                    ? "bg-purple-600/30 text-purple-200 border border-purple-500/60 shadow-[0_0_12px_rgba(168,85,247,0.7)]"
-                    : "text-white/85 hover:bg-white/7 hover:text-purple-100 border border-transparent"
+                    ? "bg-primary/30 text-primary-content border border-primary/60 shadow-[0_0_12px_rgba(168,85,247,0.7)]"
+                    : "text-base-content/85 hover:bg-base-200/7 hover:text-primary border border-transparent"
                   }`
                 }
               >
@@ -152,19 +148,17 @@ const CombinedHeader = () => {
           {authUser && (
             <Link
               to="/notifications"
-              className="relative inline-flex items-center justify-center rounded-full bg-slate-900/80 p-2 text-slate-100 hover:bg-slate-800/90 border border-slate-700/80"
+              className="relative inline-flex items-center justify-center rounded-full bg-base-200/80 p-2 text-base-content hover:bg-base-300/90 border border-base-300/80"
             >
               <BellIcon className="h-4 w-4" />
-              <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.9)]" />
+              <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-success shadow-[0_0_10px_rgba(52,211,153,0.9)]" />
             </Link>
           )}
 
           {/* Theme selector (desktop only) */}
-          {/* //** todo */}
           {authUser && (
             <div className="hidden md:flex items-center ml-2 relative">
-
-              {/* <ThemeSelector /> */}
+              <ThemeSelector />
             </div>
           )}
           {/* User / auth popup */}
@@ -174,7 +168,7 @@ const CombinedHeader = () => {
                 e.stopPropagation(); // prevent document handler from immediately closing popup
                 setShowUserPopup((prev) => !prev);
               }}
-              className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-purple-600 to-indigo-600 text-white text-sm font-semibold shadow-[0_0_15px_rgba(129,140,248,0.8)] hover:brightness-110"
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-primary to-secondary text-primary-content text-sm font-semibold shadow-[0_0_15px_rgba(129,140,248,0.8)] hover:brightness-110"
             >
               {authUser ? (
                 authUser?.profilePic ? (
@@ -193,21 +187,21 @@ const CombinedHeader = () => {
 
             {showUserPopup && (
               <div
-                className="absolute right-0 mt-2 w-64 rounded-2xl bg-slate-950 border border-slate-600 shadow-2xl p-3 z-[9999] backdrop-blur-md"
+                className="absolute right-0 mt-2 w-64 rounded-2xl bg-base-100 border border-base-300 shadow-2xl p-3 z-[9999] backdrop-blur-md"
                 onClick={(e) => e.stopPropagation()} // keep clicks inside from bubbling out
               >
                 {authUser ? (
                   <>
                     <div className="flex items-center gap-3 mb-3">
-                      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-purple-600 to-indigo-600 text-white text-sm font-semibold">
+                      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-primary to-secondary text-primary-content text-sm font-semibold">
                         {authUser?.fullName?.[0] || "U"}
                       </div>
                       <div className="flex flex-col">
-                        <span className="text-sm font-semibold text-slate-50">
+                        <span className="text-sm font-semibold text-base-content">
                           {authUser?.fullName || "User"}
                         </span>
                         {authUser.email && (
-                          <span className="text-[11px] text-slate-400 truncate">
+                          <span className="text-[11px] text-base-content/60 truncate">
                             {authUser?.email}
                           </span>
                         )}
@@ -218,24 +212,24 @@ const CombinedHeader = () => {
                       <button
                         type="button"
                         onClick={() => navigate("/profile")}
-                        className="w-full rounded-lg border border-slate-700/80 bg-slate-900/70 px-3 py-2 text-left text-slate-200 hover:bg-slate-800/90 transition-colors"
+                        className="w-full rounded-lg border border-base-300/80 bg-base-200/70 px-3 py-2 text-left text-base-content hover:bg-base-300/90 transition-colors"
                       >
                         Profile
                       </button>
                       <button
                         type="button"
                         onClick={() => navigate("/settings")}
-                        className="w-full rounded-lg border border-slate-700/80 bg-slate-900/70 px-3 py-2 text-left text-slate-200 hover:bg-slate-800/90 transition-colors"
+                        className="w-full rounded-lg border border-base-300/80 bg-base-200/70 px-3 py-2 text-left text-base-content hover:bg-base-300/90 transition-colors"
                       >
                         Settings
                       </button>
                     </div>
 
-                    <div className="my-2 border-t border-slate-700/60" />
+                    <div className="my-2 border-t border-base-300/60" />
 
                     <button
                       onClick={() => logoutMutation()}
-                      className="flex w-full items-center justify-center gap-2 rounded-full bg-red-600/90 px-3 py-2 text-xs font-semibold text-white hover:bg-red-500 transition-colors"
+                      className="flex w-full items-center justify-center gap-2 rounded-full bg-error/90 px-3 py-2 text-xs font-semibold text-error-content hover:bg-error transition-colors"
                     >
                       <LogOutIcon className="h-3.5 w-3.5" />
                       Logout
@@ -244,7 +238,7 @@ const CombinedHeader = () => {
                 ) : (
                   <button
                     onClick={() => navigate("/login")}
-                    className="w-full rounded-full bg-purple-600 px-4 py-2 text-xs font-semibold text-white shadow-[0_0_18px_rgba(168,85,247,0.8)] hover:bg-purple-500 transition-colors"
+                    className="w-full rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-content shadow-[0_0_18px_rgba(168,85,247,0.8)] hover:bg-primary-focus transition-colors"
                   >
                     Login to continue
                   </button>
@@ -258,7 +252,7 @@ const CombinedHeader = () => {
         <div className="flex items-center gap-3 md:hidden">
           <button
             onClick={toggleMobileSearch}
-            className="p-2 text-white hover:text-purple-300"
+            className="p-2 text-base-content hover:text-primary transition-colors"
             aria-label="Search"
           >
             <FaSearch />
@@ -266,7 +260,7 @@ const CombinedHeader = () => {
 
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className="p-2 text-white hover:text-purple-300"
+            className="p-2 text-base-content hover:text-primary transition-colors"
             aria-label="Menu"
           >
             {isOpen ? <FaTimes /> : <FaBars />}
@@ -276,22 +270,22 @@ const CombinedHeader = () => {
 
       {/* Mobile search bar */}
       {showMobileSearch && (
-        <div className="md:hidden border-t border-white/10 bg-slate-950/95 px-4 py-3">
+        <div className="md:hidden border-t border-base-300 bg-base-100/95 px-4 py-3">
           <form onSubmit={handleSearch} className="relative">
-            <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300" />
+            <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-base-content/70" />
             <input
               ref={searchInputRef}
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search..."
-              className="w-full px-4 py-2 pl-10 pr-10 bg-white/8 dark:bg-gray-900/80 border border-white/18 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent backdrop-blur-md text-white placeholder-gray-300 text-sm"
+              className="w-full px-4 py-2 pl-10 pr-10 bg-base-200/80 border border-base-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent backdrop-blur-md text-base-content placeholder-base-content/50 text-sm"
             />
             {searchQuery && (
               <button
                 type="button"
                 onClick={clearSearch}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-300 hover:text-white"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-base-content/70 hover:text-base-content"
               >
                 <FaTimesCircle />
               </button>
@@ -302,7 +296,7 @@ const CombinedHeader = () => {
 
       {/* Mobile drawer */}
       {isOpen && (
-        <div className="md:hidden border-t border-white/10 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 px-4 pb-4">
+        <div className="md:hidden border-t border-base-300 bg-gradient-to-b from-base-100 via-base-200 to-base-100 px-4 pb-4">
           <nav className="flex flex-col gap-1 pt-3">
             {navLinks.map((link) => (
               <NavLink
@@ -311,8 +305,8 @@ const CombinedHeader = () => {
                 onClick={() => setIsOpen(false)}
                 className={({ isActive }) =>
                   `mt-1 rounded-lg px-3 py-2 text-sm font-medium transition-all ${isActive
-                    ? "bg-purple-600/25 text-purple-100 border border-purple-500/60 shadow-[0_0_12px_rgba(168,85,247,0.7)]"
-                    : "text-white/90 border border-transparent hover:bg-white/5 hover:text-purple-100"
+                    ? "bg-primary/25 text-primary-content border border-primary/60 shadow-[0_0_12px_rgba(168,85,247,0.7)]"
+                    : "text-base-content/90 border border-transparent hover:bg-base-200/5 hover:text-primary"
                   }`
                 }
               >
@@ -327,7 +321,7 @@ const CombinedHeader = () => {
                     setIsOpen(false);
                     logoutMutation();
                   }}
-                  className="w-full rounded-full bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow-[0_0_16px_rgba(220,38,38,0.7)] hover:bg-red-500 transition-colors flex items-center justify-center gap-2"
+                  className="w-full rounded-full bg-error px-4 py-2 text-sm font-semibold text-error-content shadow-[0_0_16px_rgba(220,38,38,0.7)] hover:bg-error-focus transition-colors flex items-center justify-center gap-2"
                 >
                   <LogOutIcon className="h-4 w-4" />
                   Logout
@@ -338,7 +332,7 @@ const CombinedHeader = () => {
                     setIsOpen(false);
                     navigate("/login");
                   }}
-                  className="w-full rounded-full bg-purple-600 px-4 py-2 text-sm font-semibold text-white shadow-[0_0_18px_rgba(168,85,247,0.8)] hover:bg-purple-500 transition-colors"
+                  className="w-full rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-content shadow-[0_0_18px_rgba(168,85,247,0.8)] hover:bg-primary-focus transition-colors"
                 >
                   Login
                 </button>

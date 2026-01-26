@@ -8,11 +8,10 @@ const ThemeSelector = () => {
 
   return (
     <div className="relative dropdown dropdown-end">
-      {/* small icon trigger so navbar height doesn't grow */}
       <button
         tabIndex={0}
         aria-label="Select theme"
-        className="p-1 rounded-full text-white hover:text-purple-300 transition-colors"
+        className="p-1 rounded-full text-base-content hover:text-primary transition-colors"
       >
         <PaletteIcon className="w-5 h-5" />
       </button>
@@ -20,7 +19,7 @@ const ThemeSelector = () => {
       {/* popup: absolute, small card; appears below trigger */}
       <div
         tabIndex={0}
-        className=" z-[9999] dropdown-content absolute right-0 mt-2 w-44 p-2 overflow-y-auto shadow-2xl bg-slate-900/95 backdrop-blur rounded-lg border border-base-content/10 group-focus:block"
+        className="z-[9999] dropdown-content absolute right-0 mt-2 w-44 p-2 overflow-y-auto shadow-2xl bg-base-100/95 backdrop-blur rounded-lg border border-base-300/10 group-focus:block"
         // note: parent should toggle visibility (we rely on explicit show via wrapper if needed)
       >
         <div className="space-y-1">
@@ -30,8 +29,8 @@ const ThemeSelector = () => {
               onClick={() => setTheme(themeOption.name)}
               className={`w-full flex items-center gap-3 z-[9999] px-3 py-2 rounded-md text-sm transition-colors ${
                 theme === themeOption.name
-                  ? "bg-purple-600/10 text-purple-300"
-                  : "hover:bg-white/5"
+                  ? "bg-primary/10 text-primary"
+                  : "hover:bg-base-200/5"
               }`}
             >
               <PaletteIcon className="w-4 h-4" />

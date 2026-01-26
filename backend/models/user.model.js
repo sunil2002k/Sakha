@@ -62,6 +62,10 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    isKYCverified: {
+      type: Boolean,
+      default: false,
+    },
     friends: [
       {
         type: mongoose.Schema.Types.ObjectId,

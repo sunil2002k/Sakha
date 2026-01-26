@@ -8,17 +8,18 @@ import {
   sendFriendRequest,
   acceptFriendRequest,
 } from "../controllers/user.controller.js";
-import authorize from "../middlewares/auth.middleware.js";
+import authorize, {isAdmin} from "../middlewares/auth.middleware.js";
 
 const router = express.Router();
 
 // Public or admin list
 router.get("/", getUsers);
 
-// Protected user-related routes (must come BEFORE "/:id")
+// Protected user-related routes 
 router.get("/friend-requests", authorize, getFriendRequests);
 router.get("/outgoing-friend-requests", authorize, getOutgoingFriendReqs);
 router.get("/friends", authorize, getMyFriends);
+
 
 // Friend request actions
 router.post("/friend-request/:id", authorize, sendFriendRequest);

@@ -3,7 +3,6 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 
-
 const IdeaAnalyzer = () => {
   const [pdfFile, setPdfFile] = useState(null);
   const [pdfUrl, setPdfUrl] = useState(null);
@@ -95,39 +94,28 @@ const IdeaAnalyzer = () => {
 
     const API_ENDPOINT = `${APIURL}/api/v1/projects/create-project`;
 
-    // 1. Create FormData object
     const formDataToSubmit = new FormData();
-
-    // Append all text fields
     Object.keys(form).forEach((key) => {
       if (key !== "images" && key !== "pdfFile") {
         formDataToSubmit.append(key, form[key]);
       }
     });
 
-    // 2. Append image files
     files.forEach((image) => {
       formDataToSubmit.append("images", image);
     });
 
-
     try {
-      // send Authorization header with Bearer token
       const res = await axios.post(API_ENDPOINT, formDataToSubmit, {
         headers: {
           Authorization: `Bearer ${token}`,
-          // do not set Content-Type — browser will set multipart boundary automatically
         },
       });
 
       toast.success("Project submitted successfully!");
       navigate(`/project/${res.data.project._id}`);
     } catch (error) {
-    toast.error("Submission error:", error.response?.data || error.message);
-      alert(
-        error.response?.data?.message ||
-          "Submission failed. Check the console for details."
-      );
+      toast.error("Submission error:", error.response?.data || error.message);
     } finally {
       setLoading(false);
       isSubmittingRef.current = false;
@@ -135,38 +123,35 @@ const IdeaAnalyzer = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 pt-20 pb-12 px-4">
+    <div className="min-h-screen bg-base-100 pt-20 pb-12 px-4 transition-colors duration-300">
       <div className="max-w-4xl mx-auto">
         {/* Header Section */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-white via-purple-200 to-pink-200 bg-clip-text text-transparent">
-            Submit Your <span className="text-purple-400">Project</span>
+          <h1 className="text-4xl md:text-5xl font-bold mb-4 text-base-content">
+            Submit Your <span className="text-primary">Project</span>
           </h1>
-          <p className="text-lg md:text-xl text-gray-300 max-w-2xl mx-auto">
+          <p className="text-lg md:text-xl text-base-content/70 max-w-2xl mx-auto">
             Upload your project PDF for AI analysis or fill out the form
             manually to showcase your innovative idea
           </p>
         </div>
 
         {/* Main Form Container */}
-        <div className="bg-white/5 backdrop-blur-lg border border-white/10 rounded-2xl shadow-2xl shadow-purple-500/10 p-6 md:p-8 mb-8">
+        <div className="card bg-base-200 shadow-xl p-6 md:p-8 mb-8 border border-base-300">
           {/* PDF Upload Section */}
-          <div className="mb-8 p-6 bg-white/5 rounded-xl border border-white/10">
-            <h3 className="text-2xl font-bold mb-4 text-white flex items-center">
-              <span className="w-2 h-2 bg-purple-400 rounded-full mr-3"></span>
+          <div className="mb-8 p-6 bg-base-300/50 rounded-xl border border-base-300">
+            <h3 className="text-2xl font-bold mb-4 text-base-content flex items-center">
+              <span className="w-2 h-2 bg-primary rounded-full mr-3"></span>
               AI-Powered PDF Analysis
             </h3>
-            <p className="text-gray-300 mb-4">
+            <p className="text-base-content/70 mb-4">
               Upload your project PDF and let our AI automatically analyze and
               fill the form for you
             </p>
 
             <div className="flex flex-col md:flex-row gap-4 items-start md:items-end">
-              <div className="flex-1">
-                <label
-                  className="block text-white mb-2 font-medium"
-                  htmlFor="pdfFile"
-                >
+              <div className="flex-1 w-full">
+                <label className="label text-base-content font-medium" htmlFor="pdfFile">
                   Upload Project PDF
                 </label>
                 <input
@@ -174,7 +159,7 @@ const IdeaAnalyzer = () => {
                   type="file"
                   accept=".pdf"
                   onChange={handlePdfChange}
-                  className="block w-full text-sm text-gray-300 file:mr-4 file:py-3 file:px-6 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-gradient-to-r file:from-purple-600 file:to-pink-600 file:text-white hover:file:from-purple-700 hover:file:to-pink-700 transition-all duration-300"
+                  className="file-input file-input-bordered file-input-primary w-full bg-base-100"
                 />
               </div>
 
@@ -182,17 +167,10 @@ const IdeaAnalyzer = () => {
                 type="button"
                 onClick={analyzePdf}
                 disabled={!pdfFile || loading}
-                className={`px-6 py-3 rounded-lg font-semibold transition-all duration-300 backdrop-blur-lg ${
-                  !pdfFile || loading
-                    ? "bg-gray-600 cursor-not-allowed opacity-50"
-                    : "bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/25"
-                }`}
+                className="btn btn-primary"
               >
                 {loading ? (
-                  <span className="flex items-center">
-                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2"></div>
-                    Analyzing...
-                  </span>
+                  <span className="loading loading-spinner"></span>
                 ) : (
                   "Analyze PDF"
                 )}
@@ -202,14 +180,10 @@ const IdeaAnalyzer = () => {
 
           {/* Project Form */}
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Form Grid */}
             <div className="grid md:grid-cols-2 gap-6">
               {/* Project Title */}
               <div className="md:col-span-2">
-                <label
-                  className="block text-white mb-2 font-medium"
-                  htmlFor="title"
-                >
+                <label className="label text-base-content font-medium" htmlFor="title">
                   Project Title *
                 </label>
                 <input
@@ -219,191 +193,145 @@ const IdeaAnalyzer = () => {
                   placeholder="Enter your project title"
                   value={form.title}
                   onChange={handleChange}
-                  className="w-full p-4 bg-white/10 border border-white/10 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent backdrop-blur-lg transition-all duration-300"
+                  className="input input-bordered w-full bg-base-100 text-base-content"
                   required
                 />
               </div>
 
               {/* Tech Stack */}
               <div>
-                <label
-                  className="block text-white mb-2 font-medium"
-                  htmlFor="tech_stack"
-                >
+                <label className="label text-base-content font-medium" htmlFor="tech_stack">
                   Tech Stack *
                 </label>
                 <input
                   id="tech_stack"
                   type="text"
                   name="tech_stack"
-                  placeholder="e.g., React, Node.js, MongoDB"
+                  placeholder="e.g., React, Node.js"
                   value={form.tech_stack}
                   onChange={handleChange}
-                  className="w-full p-4 bg-white/10 border border-white/10 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent backdrop-blur-lg transition-all duration-300"
+                  className="input input-bordered w-full bg-base-100 text-base-content"
                   required
                 />
               </div>
 
               {/* Category */}
               <div>
-                <label
-                  className="block text-white mb-2 font-medium"
-                  htmlFor="category"
-                >
+                <label className="label text-base-content font-medium" htmlFor="category">
                   Category *
                 </label>
                 <input
                   id="category"
                   type="text"
                   name="category"
-                  placeholder="e.g., Web Development, AI, Blockchain"
+                  placeholder="e.g., AI, Web"
                   value={form.category}
                   onChange={handleChange}
-                  className="w-full p-4 bg-white/10 border border-white/10 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent backdrop-blur-lg transition-all duration-300"
+                  className="input input-bordered w-full bg-base-100 text-base-content"
                   required
                 />
               </div>
 
-              {/* Project Description */}
+              {/* Description */}
               <div className="md:col-span-2">
-                <label
-                  className="block text-white mb-2 font-medium"
-                  htmlFor="description"
-                >
+                <label className="label text-base-content font-medium" htmlFor="description">
                   Project Description *
                 </label>
                 <textarea
                   id="description"
                   name="description"
-                  placeholder="Describe your project in detail..."
+                  placeholder="Describe your project..."
                   value={form.description}
                   onChange={handleChange}
-                  className="w-full p-4 bg-white/10 border border-white/10 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent backdrop-blur-lg transition-all duration-300 resize-vertical min-h-[120px]"
-                  rows="4"
+                  className="textarea textarea-bordered w-full bg-base-100 text-base-content min-h-[120px]"
                   required
                 />
               </div>
 
               {/* Expected Outcomes */}
               <div className="md:col-span-2">
-                <label
-                  className="block text-white mb-2 font-medium"
-                  htmlFor="expected_outcomes"
-                >
+                <label className="label text-base-content font-medium" htmlFor="expected_outcomes">
                   Expected Outcomes *
                 </label>
                 <textarea
                   id="expected_outcomes"
                   name="expected_outcomes"
-                  placeholder="What do you expect to achieve with this project?"
+                  placeholder="Expected achievements..."
                   value={form.expected_outcomes}
                   onChange={handleChange}
-                  className="w-full p-4 bg-white/10 border border-white/10 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent backdrop-blur-lg transition-all duration-300 resize-vertical min-h-[120px]"
-                  rows="4"
+                  className="textarea textarea-bordered w-full bg-base-100 text-base-content min-h-[120px]"
                   required
                 />
               </div>
 
               {/* Images */}
-              <div className="mb-6">
-                <label
-                  htmlFor="images"
-                  className="block text-sm font-medium text-gray-300 mb-2"
-                >
+              <div className="md:col-span-2">
+                <label className="label text-base-content font-medium" htmlFor="images">
                   Project Images
                 </label>
                 <input
                   id="images"
                   type="file"
-                  multiple // Allows selection of multiple files
+                  multiple
                   accept="image/*"
                   onChange={handleFileChange}
-                  className="w-full text-white bg-white/5 backdrop-blur-lg border border-white/10 rounded-xl p-3 focus:border-purple-500 focus:ring-purple-500 transition-all duration-300"
+                  className="file-input file-input-bordered w-full bg-base-100"
                 />
-                {files.length > 0 && (
-                  <p className="text-gray-400 text-sm mt-2">
-                    {files.length} file(s) selected.
-                  </p>
-                )}
               </div>
             </div>
 
             {/* Project Type */}
-            <div className="bg-white/5 rounded-xl p-6 border border-white/10">
-              <span className="block text-white mb-3 font-medium">
-                Project Type *
-              </span>
+            <div className="bg-base-300/30 rounded-xl p-6 border border-base-300">
+              <span className="block text-base-content mb-3 font-medium">Project Type *</span>
               <div className="flex flex-col sm:flex-row gap-4">
-                <label className="flex items-center space-x-3 p-4 bg-white/5 rounded-lg border border-white/10 hover:bg-white/10 transition-all duration-300 cursor-pointer flex-1">
+                <label className="flex items-center space-x-3 p-4 bg-base-100 rounded-lg border border-base-300 cursor-pointer flex-1 hover:bg-base-300/50 transition-colors">
                   <input
                     type="radio"
                     name="type"
                     value="mentorship"
                     checked={form.type === "mentorship"}
                     onChange={handleChange}
-                    className="w-4 h-4 text-purple-600 bg-gray-900 border-gray-300 focus:ring-purple-500"
+                    className="radio radio-primary"
                   />
-                  <div>
-                    <span className="text-white font-medium">
-                      Mentorship Only
-                    </span>
-                    <p className="text-gray-400 text-sm mt-1">
-                      Get guidance and support from experienced mentors
-                    </p>
-                  </div>
+                  <span className="text-base-content font-medium">Mentorship Only</span>
                 </label>
 
-                <label className="flex items-center space-x-3 p-4 bg-white/5 rounded-lg border border-white/10 hover:bg-white/10 transition-all duration-300 cursor-pointer flex-1">
+                <label className="flex items-center space-x-3 p-4 bg-base-100 rounded-lg border border-base-300 cursor-pointer flex-1 hover:bg-base-300/50 transition-colors">
                   <input
                     type="radio"
                     name="type"
                     value="funding"
                     checked={form.type === "funding"}
                     onChange={handleChange}
-                    className="w-4 h-4 text-purple-600 bg-gray-900 border-gray-300 focus:ring-purple-500"
+                    className="radio radio-primary"
                   />
-                  <div>
-                    <span className="text-white font-medium">Raise Funds</span>
-                    <p className="text-gray-400 text-sm mt-1">
-                      Seek financial support for your project
-                    </p>
-                  </div>
+                  <span className="text-base-content font-medium">Raise Funds</span>
                 </label>
               </div>
             </div>
 
             {/* Funding Amount */}
             {form.type === "funding" && (
-              <div className="bg-white/5 rounded-xl p-6 border border-white/10">
-                <label
-                  className="block text-white mb-2 font-medium"
-                  htmlFor="targetAmount"
-                >
+              <div className="bg-base-300/30 rounded-xl p-6 border border-base-300 animate-in fade-in slide-in-from-top-2">
+                <label className="label text-base-content font-medium" htmlFor="targetAmount">
                   Target Funding Amount (NPR) *
                 </label>
                 <input
                   id="targetAmount"
                   type="number"
                   name="targetAmount"
-                  placeholder="Enter amount in Nepalese Rupees"
                   value={form.targetAmount}
                   onChange={handleChange}
-                  className="w-full p-4 bg-white/10 border border-white/10 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent backdrop-blur-lg transition-all duration-300"
+                  className="input input-bordered w-full bg-base-100 text-base-content"
                   required
                 />
-                <p className="text-gray-400 text-sm mt-2">
-                  Specify the amount you need to bring your project to life
-                </p>
               </div>
             )}
 
-            {/* Submit Button */}
             <button
               type="submit"
               disabled={loading}
-              className={`w-full py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-bold text-lg hover:from-purple-700 hover:to-pink-700 hover:scale-105 hover:shadow-2xl hover:shadow-purple-500/25 transition-all duration-300 backdrop-blur-lg ${
-                loading ? "opacity-60 cursor-not-allowed hover:scale-100 hover:shadow-none" : ""
-              }`}
+              className="btn btn-primary btn-block text-lg"
             >
               {loading ? "Submitting..." : "Submit Project 🚀"}
             </button>
@@ -412,19 +340,10 @@ const IdeaAnalyzer = () => {
 
         {/* PDF Preview */}
         {pdfUrl && (
-          <div className="bg-white/5 backdrop-blur-lg border border-white/10 rounded-2xl p-6">
-            <h4 className="text-xl font-bold mb-4 text-white flex items-center">
-              <span className="w-2 h-2 bg-green-400 rounded-full mr-3"></span>
-              PDF Preview
-            </h4>
-            <div className="border border-white/10 rounded-xl overflow-hidden">
-              <iframe
-                src={pdfUrl}
-                title="PDF Preview"
-                width="100%"
-                height="500px"
-                className="bg-white"
-              />
+          <div className="card bg-base-200 shadow-xl p-6 border border-base-300">
+            <h4 className="text-xl font-bold mb-4 text-base-content">PDF Preview</h4>
+            <div className="rounded-xl overflow-hidden border border-base-300">
+              <iframe src={pdfUrl} title="PDF Preview" width="100%" height="500px" />
             </div>
           </div>
         )}

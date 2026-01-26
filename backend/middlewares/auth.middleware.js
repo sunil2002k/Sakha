@@ -39,3 +39,29 @@ const authorize = async (req, res, next) => {
 };
 
 export default authorize;
+
+
+// 🟢 NEW: Admin-only check
+export const isAdmin = (req, res, next) => {
+  // Check if req.user exists (from authorize) and if they are an admin
+  if (req.user && req.user.role === "admin") {
+    next();
+  } else {
+    return res.status(403).json({ 
+      success: false, 
+      message: "Access denied. Admins only." 
+    });
+  }
+};
+
+// 🟢 NEW: Mentor-only check (Optional)
+export const isMentor = (req, res, next) => {
+  if (req.user && (req.user.role === "mentor" || req.user.role === "admin")) {
+    next();
+  } else {
+    return res.status(403).json({ 
+      success: false, 
+      message: "Access denied. Mentors only." 
+    });
+  }
+};

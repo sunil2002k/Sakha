@@ -12,9 +12,9 @@ import errorMiddleware from "./middlewares/error.middleware.js";
 import authRouter from "./routes/auth.routes.js";
 import paymentRouter from "./routes/payment.routes.js";
 import kycRouter from "./routes/kyc.routes.js";
+import adminRouter from "./routes/admin.routes.js";
 const app = express();
 
-// DEVELOPMENT: allow any origin for dev (restrict in production)
 app.use(cors({ origin: true, credentials: true }));
 
 app.use(express.json());
@@ -27,13 +27,12 @@ app.use("/api/v1/projects", projectRouter);
 app.use("/api/v1/payments", paymentRouter);
 app.use("/api/v1/chat", chatRouter);
 app.use("/api/v1/kyc", kycRouter);
+app.use("/api/v1/admin", adminRouter);
 app.use(errorMiddleware);
 
 app.get("/", (req, res) => {
   res.send("Welcome to the Sakha API");
 });
-
-
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

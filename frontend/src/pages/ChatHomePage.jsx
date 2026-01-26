@@ -16,8 +16,7 @@ import {
 
 import { capitialize } from "../lib/utils";
 
-import FriendCard, { getLanguageFlag } from "../components/FriendCard";
-import NoFriendsFound from "../components/NoFriendsFound";
+import  { getLanguageFlag } from "../components/FriendCard";
 
 const ChatHomePage = () => {
   const queryClient = useQueryClient();

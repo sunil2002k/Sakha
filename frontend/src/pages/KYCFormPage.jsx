@@ -6,7 +6,7 @@ import useAuthUser from "../hooks/useAuthUser";
 
 const KYCFormPage = () => {
   const navigate = useNavigate();
-  const {authUser} = useAuthUser();
+  const { authUser } = useAuthUser();
 
   const [formData, setFormData] = useState({
     fullName: "",
@@ -23,7 +23,6 @@ const KYCFormPage = () => {
 
   const [capturedImage, setCapturedImage] = useState(null);
   const [cameraActive, setCameraActive] = useState(false);
-  const [isProcessingBlink, setIsProcessingBlink] = useState(false);
   const [scriptsLoaded, setScriptsLoaded] = useState(false);
 
   // --- Load MediaPipe Scripts Dynamically ---
@@ -48,7 +47,6 @@ const KYCFormPage = () => {
       loadScript("https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"),
     ])
       .then(() => {
-        console.log("MediaPipe scripts loaded");
         setScriptsLoaded(true);
       })
       .catch((err) => console.error("Failed to load MediaPipe scripts", err));
@@ -59,14 +57,8 @@ const KYCFormPage = () => {
      ----------------------------- */
   const calculateEAR = (p) => {
     const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
-    // Left Eye
-    const leftEAR =
-      (dist(p[159], p[145]) + dist(p[158], p[153])) /
-      (2 * dist(p[33], p[133]));
-    // Right Eye
-    const rightEAR =
-      (dist(p[386], p[374]) + dist(p[385], p[380])) /
-      (2 * dist(p[362], p[263]));
+    const leftEAR = (dist(p[159], p[145]) + dist(p[158], p[153])) / (2 * dist(p[33], p[133]));
+    const rightEAR = (dist(p[386], p[374]) + dist(p[385], p[380])) / (2 * dist(p[362], p[263]));
     return (leftEAR + rightEAR) / 2;
   };
 
@@ -79,7 +71,6 @@ const KYCFormPage = () => {
     const video = videoRef.current;
     const canvas = canvasRef.current;
     
-    // Set canvas dimensions to match video stream
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
 
@@ -89,17 +80,14 @@ const KYCFormPage = () => {
     const imageData = canvas.toDataURL("image/jpeg");
     setCapturedImage(imageData);
 
-    // Stop Camera and cleanup
     if (cameraInstanceRef.current) {
         cameraInstanceRef.current.stop();
     }
     setCameraActive(false);
-    setIsProcessingBlink(false);
   }, []);
 
   /* ----------------------------
       Initialize MediaPipe
-      (Triggered when cameraActive becomes true and scripts are loaded)
      ----------------------------- */
   useEffect(() => {
     if (!cameraActive || !scriptsLoaded) return;
@@ -108,8 +96,7 @@ const KYCFormPage = () => {
       if (!videoRef.current || !window.FaceMesh || !window.Camera) return;
 
       const mesh = new window.FaceMesh({
-        locateFile: (file) =>
-          `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`,
+        locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`,
       });
 
       mesh.setOptions({
@@ -120,16 +107,13 @@ const KYCFormPage = () => {
       });
 
       mesh.onResults((results) => {
-        // If we are already capturing, ignore new frames
         if (meshInstanceRef.current?.shouldStop) return;
 
         if (results.multiFaceLandmarks?.length > 0) {
           const landmarks = results.multiFaceLandmarks[0];
           const ear = calculateEAR(landmarks);
 
-          // EAR Threshold: < 0.25 usually indicates closed eyes
           if (ear < 0.25) {
-             // Use a flag to prevent multiple triggers
              if (!meshInstanceRef.current?.shouldStop) {
                  meshInstanceRef.current.shouldStop = true;
                  capturePhoto();
@@ -143,7 +127,7 @@ const KYCFormPage = () => {
       const camera = new window.Camera(videoRef.current, {
         onFrame: async () => {
           if (meshInstanceRef.current && !meshInstanceRef.current.shouldStop) {
-             await mesh.send({ image: videoRef.current });
+              await mesh.send({ image: videoRef.current });
           }
         },
         width: 640,
@@ -156,7 +140,6 @@ const KYCFormPage = () => {
 
     initMediaPipe();
 
-    // Cleanup function
     return () => {
       if (cameraInstanceRef.current) {
         cameraInstanceRef.current.stop();
@@ -175,7 +158,6 @@ const KYCFormPage = () => {
   const handleStartCamera = () => {
     setCapturedImage(null);
     setCameraActive(true);
-    setIsProcessingBlink(true);
   };
 
   const handleChange = (e) => {
@@ -184,28 +166,20 @@ const KYCFormPage = () => {
 
   const handleKycSubmit = async (e) => {
     e.preventDefault();
-    const submittedBy = authUser._id; 
-    if (!capturedImage) {
-      alert("Please complete blink-based selfie capture.");
-      return;
-    }
+    if (!capturedImage) return alert("Please complete blink-based selfie capture.");
 
     const data = new FormData();
     data.append("fullName", formData.fullName);
     data.append("dob", formData.dob);
     data.append("address", formData.address);
     data.append("idCard", idCard);
-    data.append("submittedBy", submittedBy);
+    data.append("submittedBy", authUser._id);
     data.append("selfie", capturedImage); 
 
     try {
-      const res = await axios.post("http://localhost:5500/api/v1/kyc/submit", data);
+      await axios.post(`${import.meta.env.VITE_APP_URL}/api/v1/kyc/submit`, data);
       alert("KYC submitted successfully.");
-      setFormData({
-        fullName: "",
-        dob: "",
-        address: "",
-  })
+      navigate("/");
     } catch (err) {
       console.error(err);
       alert("KYC submission failed.");
@@ -213,151 +187,141 @@ const KYCFormPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex justify-center px-4 py-10 bg-slate-950 text-white font-sans">
-      <div className="max-w-xl w-full p-8 border border-slate-800 bg-slate-900/40 rounded-3xl shadow-xl backdrop-blur-xl">
+    <div className="min-h-screen flex justify-center px-4 py-10 bg-base-100 text-base-content transition-colors duration-300">
+      <div className="max-w-xl w-full p-8 border border-base-300 bg-base-200/50 rounded-3xl shadow-xl backdrop-blur-xl h-fit pt-24">
         
         {/* BACK BUTTON */}
         <button
           onClick={() => navigate(-1)}
-          className="flex items-center gap-2 text-slate-300 hover:text-white mb-6 transition-colors"
+          className="btn btn-ghost btn-sm gap-2 mb-6"
         >
-          <ArrowLeft className="h-5 w-5" /> Back
+          <ArrowLeft className="h-4 w-4" /> Back
         </button>
 
-        <h2 className="text-2xl font-bold mb-3">KYC Verification</h2>
-        <p className="text-slate-400 mb-8 text-sm">
-          Complete the form below and blink to capture your selfie.
+        <h2 className="text-3xl font-black mb-2 tracking-tight">KYC Verification</h2>
+        <p className="opacity-60 mb-8 text-sm font-medium">
+          Verify your identity to unlock all platform features.
         </p>
 
         <form onSubmit={handleKycSubmit} className="space-y-6">
 
           {/* NAME */}
-          <div>
-            <label className="text-sm text-slate-300 font-medium">Full Name</label>
+          <div className="form-control">
+            <label className="label text-xs font-black uppercase tracking-widest opacity-70">Full Name</label>
             <input
               type="text"
               name="fullName"
-              className="w-full mt-1 px-4 py-3 rounded-xl bg-slate-800 border border-slate-700 text-sm focus:ring-2 focus:ring-purple-500 outline-none transition-all"
-              placeholder="Enter your full name"
+              className="input input-bordered bg-base-100 focus:input-primary rounded-xl"
+              placeholder="As it appears on your ID"
               onChange={handleChange}
               required
             />
           </div>
 
-          {/* DOB */}
-          <div>
-            <label className="text-sm text-slate-300 font-medium">Date of Birth</label>
-            <input
-              type="date"
-              name="dob"
-              className="w-full mt-1 px-4 py-3 rounded-xl bg-slate-800 border border-slate-700 text-sm focus:ring-2 focus:ring-purple-500 outline-none transition-all"
-              onChange={handleChange}
-              required
-            />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* DOB */}
+              <div className="form-control">
+                <label className="label text-xs font-black uppercase tracking-widest opacity-70">Date of Birth</label>
+                <input
+                  type="date"
+                  name="dob"
+                  className="input input-bordered bg-base-100 focus:input-primary rounded-xl"
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+
+              {/* ID CARD UPLOAD */}
+              <div className="form-control">
+                <label className="label text-xs font-black uppercase tracking-widest opacity-70">National ID</label>
+                <label className="flex items-center justify-center gap-2 px-4 py-3 bg-base-100 border border-base-300 border-dashed rounded-xl cursor-pointer hover:border-primary transition-all">
+                    <UploadCloud className="w-4 h-4 text-primary" />
+                    <span className="text-xs font-bold truncate max-w-[120px]">
+                        {idCard ? idCard.name : "Upload ID"}
+                    </span>
+                    <input
+                      type="file"
+                      className="hidden"
+                      accept="image/*"
+                      onChange={(e) => setIdCard(e.target.files[0])}
+                      required
+                    />
+                </label>
+              </div>
           </div>
 
           {/* ADDRESS */}
-          <div>
-            <label className="text-sm text-slate-300 font-medium">Address</label>
+          <div className="form-control">
+            <label className="label text-xs font-black uppercase tracking-widest opacity-70">Current Address</label>
             <textarea
               name="address"
-              className="w-full mt-1 px-4 py-3 rounded-xl bg-slate-800 border border-slate-700 text-sm focus:ring-2 focus:ring-purple-500 outline-none transition-all"
-              rows="3"
+              className="textarea textarea-bordered bg-base-100 focus:textarea-primary rounded-xl h-24"
+              placeholder="Your permanent address..."
               onChange={handleChange}
               required
             />
           </div>
 
-          {/* ID CARD */}
-          <div>
-            <label className="text-sm text-slate-300 font-medium">National ID</label>
-            <div className="mt-2 p-4 rounded-xl bg-slate-800 border border-slate-700 hover:border-purple-500 transition-colors border-dashed">
-              <label className="flex flex-col items-center justify-center cursor-pointer">
-                <UploadCloud className="w-8 h-8 text-purple-400 mb-2" />
-                <span className="text-slate-300 text-sm font-medium">
-                  {idCard ? idCard.name : "Click to Upload ID Card"}
-                </span>
-                <span className="text-slate-500 text-xs mt-1">
-                  Supports JPG, PNG
-                </span>
-
-                <input
-                  type="file"
-                  className="hidden"
-                  accept="image/*"
-                  onChange={(e) => setIdCard(e.target.files[0])}
-                  required
-                />
-              </label>
-            </div>
-          </div>
-
           {/* SELFIE CAPTURE */}
-          <div>
-            <label className="text-sm text-slate-300 font-medium block mb-2">Live Selfie</label>
+          <div className="pt-4 border-t border-base-300">
+            <label className="label text-xs font-black uppercase tracking-widest opacity-70 mb-2">Liveness Detection (Selfie)</label>
 
-            {/* Start Camera Button */}
             {!capturedImage && !cameraActive && (
               <button
                 type="button"
                 onClick={handleStartCamera}
                 disabled={!scriptsLoaded}
-                className={`w-full py-4 rounded-xl flex items-center justify-center gap-2 transition-all font-medium shadow-lg ${
-                  scriptsLoaded 
-                    ? "bg-purple-600 hover:bg-purple-500 text-white shadow-purple-900/20" 
-                    : "bg-slate-700 text-slate-400 cursor-not-allowed"
-                }`}
+                className="btn btn-primary btn-block rounded-xl h-16 shadow-lg shadow-primary/20"
               >
                 <Camera className="w-5 h-5" /> 
-                {scriptsLoaded ? "Start Camera & Blink" : "Loading Camera..."}
+                {scriptsLoaded ? "Start Camera & Blink" : "Loading AI Modules..."}
               </button>
             )}
 
-            {/* Video Preview */}
             {cameraActive && (
-              <div className="relative overflow-hidden rounded-xl border border-purple-500 shadow-2xl shadow-purple-900/30">
+              <div className="relative overflow-hidden rounded-2xl border-2 border-primary shadow-2xl">
                 <video 
                     ref={videoRef} 
-                    className="w-full h-auto transform scale-x-[-1]" // Mirror effect
+                    className="w-full h-auto transform scale-x-[-1] bg-black"
                     autoPlay 
                     playsInline 
                 />
-                <div className="absolute bottom-0 left-0 right-0 bg-black/60 backdrop-blur-sm p-3 text-center">
-                  <p className="text-purple-300 text-sm font-medium animate-pulse">
+                <div className="absolute inset-0 border-[16px] border-primary/10 pointer-events-none"></div>
+                <div className="absolute bottom-0 left-0 right-0 bg-primary text-primary-content p-3 text-center">
+                  <p className="text-sm font-black animate-pulse uppercase tracking-wider">
                     Looking for eyes... Blink to capture!
                   </p>
                 </div>
               </div>
             )}
 
-            {/* Captured Result */}
             {capturedImage && (
-              <div className="relative">
+              <div className="relative group">
                 <img
                   src={capturedImage}
-                  className="w-full rounded-xl border border-green-500 shadow-lg"
+                  className="w-full rounded-2xl border-2 border-success shadow-lg"
                   alt="Captured selfie"
                 />
                 <button
                     type="button"
                     onClick={() => setCapturedImage(null)}
-                    className="absolute top-2 right-2 bg-black/50 hover:bg-black/70 text-white text-xs px-2 py-1 rounded backdrop-blur-md transition-colors"
+                    className="absolute top-4 right-4 btn btn-circle btn-sm bg-black/60 border-none text-white hover:bg-black"
                 >
-                    Retake
+                    ✕
                 </button>
-                <p className="text-green-400 text-xs mt-2 text-center">
-                    Selfie captured successfully!
-                </p>
+                <div className="mt-3 flex items-center justify-center gap-2 text-success font-bold text-xs">
+                    <span className="w-2 h-2 rounded-full bg-success animate-ping"></span>
+                    VERIFIED SELFIE CAPTURED
+                </div>
               </div>
             )}
 
-            {/* Hidden Canvas for processing */}
             <canvas ref={canvasRef} className="hidden"></canvas>
           </div>
 
           <button
             type="submit"
-            className="w-full mt-6 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 py-4 text-sm font-bold text-white shadow-lg hover:shadow-purple-500/25 transition-all transform hover:-translate-y-0.5 active:translate-y-0"
+            className="btn btn-primary btn-block btn-lg rounded-xl mt-4 font-black shadow-xl"
           >
             Submit KYC Application
           </button>
