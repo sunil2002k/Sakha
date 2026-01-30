@@ -154,7 +154,7 @@ export default function Signup() {
             <div className="text-center space-y-3 mt-6">
               <h2 className="text-xl font-semibold">Connect with language partners worldwide</h2>
               <p className="opacity-70">
-                Practice conversations, make friends, and improve your language skills together
+                Practice conversations, make connections, and improve your skills together
               </p>
             </div>
           </div>

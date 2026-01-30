@@ -19,19 +19,18 @@ const ThemeSelector = () => {
       {/* popup: absolute, small card; appears below trigger */}
       <div
         tabIndex={0}
-        className="z-[9999] dropdown-content absolute right-0 mt-2 w-44 p-2 overflow-y-auto shadow-2xl bg-base-100/95 backdrop-blur rounded-lg border border-base-300/10 group-focus:block"
-        // note: parent should toggle visibility (we rely on explicit show via wrapper if needed)
+        className="z-[9999] dropdown-content absolute right-0 mt-2 w-62 max-h-96 p-2 overflow-y-auto shadow-2xl bg-base-100/95 backdrop-blur rounded-lg border border-base-300/10 group-focus:block"
+      // note: parent should toggle visibility (we rely on explicit show via wrapper if needed)
       >
         <div className="space-y-1">
           {THEMES.map((themeOption) => (
             <button
               key={themeOption.name}
               onClick={() => setTheme(themeOption.name)}
-              className={`w-full flex items-center gap-3 z-[9999] px-3 py-2 rounded-md text-sm transition-colors ${
-                theme === themeOption.name
+              className={`w-full flex items-center gap-3 z-[9999] px-3 py-2 rounded-md text-sm transition-colors ${theme === themeOption.name
                   ? "bg-primary/10 text-primary"
                   : "hover:bg-base-200/5"
-              }`}
+                }`}
             >
               <PaletteIcon className="w-4 h-4" />
               <span className="truncate">{themeOption.label}</span>

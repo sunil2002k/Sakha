@@ -35,7 +35,6 @@ joblib.dump(clf_model, "model.pkl")
 joblib.dump(X_vec, "desc_vec.pkl")
 data.to_csv("projects.csv", index=False)
 
-# --- Regression Training (predicting success score) ---
 # Fake success_score for training (you can replace this with real metrics later)
 np.random.seed(42)
 data["success_score"] = np.random.uniform(50, 95, size=len(data))

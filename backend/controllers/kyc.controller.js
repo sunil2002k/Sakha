@@ -5,6 +5,7 @@ import User from "../models/user.model.js";
 import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
+import { sendEmail } from "../utils/email.service.js";
 
 // Resolve __filename and __dirname equivalents for ES Modules
 const __filename = fileURLToPath(import.meta.url);
@@ -87,22 +88,24 @@ export const show_KYC = async (req, res) => {
 export const verifyKYC = async (req, res) => {
   try {
     const { id } = req.params;
-    const record = await KYCModel.findById(id);
-    if (!record)
-      return res.status(404).json({ success: false, message: "KYC not found" });
-    if (record.status === "verified")
-      return res
-        .status(400)
-        .json({ success: false, message: "Already verified" });
+    const { reason } = req.body || { };
+    
+    // Populate submittedBy to access User.email
+    const record = await KYCModel.findById(id).populate("submittedBy");
+    if (!record) return res.status(404).json({ success: false, message: "KYC not found" });
 
     record.status = "verified";
     await record.save();
 
-    await User.findByIdAndUpdate(record.submittedBy, { isKYCverified: true });
+    await User.findByIdAndUpdate(record.submittedBy._id, { isKYCverified: true });
 
-    res
-      .status(200)
-      .json({ success: true, message: "KYC verified", data: record });
+    await sendEmail({
+      email: record.submittedBy.email,
+      subject: "KYC Verification Approved",
+      message: `Your identity verification has been approved. ${reason || "You now have full access to platform features."}`
+    });
+
+    res.status(200).json({ success: true, message: "Verified and email sent" });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -111,23 +114,23 @@ export const verifyKYC = async (req, res) => {
 export const rejectKYC = async (req, res) => {
   try {
     const { id } = req.params;
-    const record = await KYCModel.findById(id);
-    if (!record)
-      return res.status(404).json({ success: false, message: "KYC not found" });
-    if (record.status === "rejected")
-      return res
-        .status(400)
-        .json({ success: false, message: "Already rejected" });
+    const { reason } = req.body || {};
+    
+    const record = await KYCModel.findById(id).populate("submittedBy");
+    if (!record) return res.status(404).json({ success: false, message: "KYC not found" });
 
     record.status = "rejected";
-    // Optionally save reason if you extend schema later
     await record.save();
 
-    await User.findByIdAndUpdate(record.submittedBy, { isKYCverified: false });
+    await User.findByIdAndUpdate(record.submittedBy._id, { isKYCverified: false });
 
-    res
-      .status(200)
-      .json({ success: true, message: "KYC rejected", data: record });
+    await sendEmail({
+      email: record.submittedBy.email,
+      subject: "KYC Verification Rejected",
+      message: `Your identity verification was rejected. Reason: ${reason || "The provided documents were unclear or invalid."}`
+    });
+
+    res.status(200).json({ success: true, message: "Rejected and email sent" });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

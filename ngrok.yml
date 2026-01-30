@@ -1,5 +1,6 @@
-version: "2"
-authtoken: 34e1Gt3woEpdjGFc0ZrkXDPx9jL_5nM8NLp9LSz7YK6GBjZre
+version: "3"
+agent:
+  authtoken: 2sh6xD1DjkJKvWML9WOL4efYINd_4Fx66XjYL8CZTLAV7eCNx
 tunnels:
   frontend:
     addr: 5173

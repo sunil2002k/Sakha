@@ -127,7 +127,7 @@ const About = () => {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-black mb-4 uppercase tracking-tighter">
-              Why Choose <span className="text-primary underline decoration-wavy decoration-2 underline-offset-8">Sakha?</span>
+              Why Choose <span className="text-primary underline decoration-wavy decoration-2 underline-offset-8">InnovateU?</span>
             </h2>
             <p className="text-lg opacity-60 max-w-2xl mx-auto font-medium">
               A comprehensive ecosystem designed to take your project from a napkin sketch to a global success.

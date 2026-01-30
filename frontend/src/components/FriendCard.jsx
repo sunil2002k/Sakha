@@ -1,12 +1,17 @@
 import React from "react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router-dom";
 import { LANGUAGE_TO_FLAG } from "../constants";
 
-
 const FriendCard = ({ friend }) => {
+  const navigate = useNavigate();
+
+  const handleMentordetail = () => {
+    navigate(`/mentor/${friend._id}`);
+  };
+
   return (
     <div className="card bg-base-200 hover:shadow-md transition-shadow">
-      <div className="card-body p-4">
+      <div className="card-body p-4 cursor-pointer" onClick={handleMentordetail}>
         {/* USER INFO */}
         <div className="flex items-center gap-3 mb-3">
           <div className="avatar size-12">
@@ -26,13 +31,18 @@ const FriendCard = ({ friend }) => {
           </span>
         </div>
 
-        <Link to={`/chat/${friend._id}`} className="btn btn-outline w-full">
+        <Link
+          to={`/chat/${friend._id}`}
+          className="btn btn-outline w-full"
+          onClick={(e) => e.stopPropagation()}
+        >
           Message
         </Link>
       </div>
     </div>
   );
 };
+
 export default FriendCard;
 
 export function getLanguageFlag(language) {

@@ -24,3 +24,7 @@ export const CLOUDINARY_API_SECRET = process.env.CLOUDINARY_API_SECRET || "";
 // Stream
 export const STREAM_API_KEY = process.env.STREAM_API_KEY || "";
 export const STREAM_SECRET_KEY = process.env.STREAM_SECRET_KEY || "";
+
+// Email
+export const EMAIL_USER = process.env.EMAIL_USER || "";
+export const EMAIL_PASS = process.env.EMAIL_PASS || "";

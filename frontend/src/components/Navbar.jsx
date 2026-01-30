@@ -1,6 +1,5 @@
-// filepath: c:\Users\kunwa\OneDrive\Desktop\BE_Notes\8th sem\Project III\Sakha\frontend\src\components\Navbar.jsx
 import React, { useState, useRef, useEffect } from "react";
-import { Link, NavLink, useNavigate, useLocation } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import {
   FaBars,
   FaTimes,
@@ -14,7 +13,7 @@ import useAuthUser from "../hooks/useAuthUser";
 import useLogout from "../hooks/useLogout";
 import logo from '../assets/logo.png'
 
-const CombinedHeader = ({ hideLogo}) => {
+const Navbar = ({ hideLogo}) => {
   const [isOpen, setIsOpen] = useState(false);
   const [showUserPopup, setShowUserPopup] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -22,7 +21,6 @@ const CombinedHeader = ({ hideLogo}) => {
   const popupRef = useRef(null);
   const searchInputRef = useRef(null);
   const navigate = useNavigate();
-  const location = useLocation();
 
   const { authUser } = useAuthUser();
   const { logoutMutation } = useLogout();
@@ -32,7 +30,6 @@ const CombinedHeader = ({ hideLogo}) => {
     console.debug("Navbar authUser:", authUser);
   }, [authUser]);
 
-  const isChatPage = location.pathname?.startsWith("/chat");
 
   const navLinks = [
     { name: "Home", path: "/" },
@@ -156,16 +153,16 @@ const CombinedHeader = ({ hideLogo}) => {
           )}
 
           {/* Theme selector (desktop only) */}
-          {authUser && (
+          
             <div className="hidden md:flex items-center ml-2 relative">
               <ThemeSelector />
             </div>
-          )}
+          
           {/* User / auth popup */}
           <div className="relative" ref={popupRef}>
             <button
               onClick={(e) => {
-                e.stopPropagation(); // prevent document handler from immediately closing popup
+                e.stopPropagation(); 
                 setShowUserPopup((prev) => !prev);
               }}
               className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-primary to-secondary text-primary-content text-sm font-semibold shadow-[0_0_15px_rgba(129,140,248,0.8)] hover:brightness-110"
@@ -188,7 +185,9 @@ const CombinedHeader = ({ hideLogo}) => {
             {showUserPopup && (
               <div
                 className="absolute right-0 mt-2 w-64 rounded-2xl bg-base-100 border border-base-300 shadow-2xl p-3 z-[9999] backdrop-blur-md"
-                onClick={(e) => e.stopPropagation()} // keep clicks inside from bubbling out
+                onClick={(e) =>{ e.stopPropagation();
+                  setShowUserPopup(false)}
+                } // keep clicks inside from bubbling out
               >
                 {authUser ? (
                   <>
@@ -345,4 +344,4 @@ const CombinedHeader = ({ hideLogo}) => {
   );
 };
 
-export default CombinedHeader;
+export default Navbar;

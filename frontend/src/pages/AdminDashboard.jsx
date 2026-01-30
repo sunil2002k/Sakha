@@ -1,5 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { axiosInstance } from "../lib/axios";
+import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
+
 
 const AdminDashboard = () => {
   const [stats, setStats] = useState({ userCount: 0, projectCount: 0 });
@@ -7,6 +10,7 @@ const AdminDashboard = () => {
   const [kycList, setKycList] = useState([]);
   const [kycLoading, setKycLoading] = useState(true);
   const [actionLoadingId, setActionLoadingId] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -19,7 +23,7 @@ const AdminDashboard = () => {
           });
         }
       } catch (err) {
-        console.error("Failed to load admin stats:", err);
+        toast.error("Failed to load admin stats:", err);
       } finally {
         setLoading(false);
       }
@@ -34,7 +38,7 @@ const AdminDashboard = () => {
         const res = await axiosInstance.get("/kyc/all");
         setKycList(res.data || []);
       } catch (err) {
-        console.error("Failed to fetch KYC list", err);
+        toast.error("Failed to fetch KYC list");
       } finally {
         setKycLoading(false);
       }
@@ -42,36 +46,12 @@ const AdminDashboard = () => {
     fetchKyc();
   }, []);
 
-  const handleVerify = async (id) => {
-    setActionLoadingId(id);
-    try {
-      await axiosInstance.post(`/kyc/verify/${id}`);
-      setKycList(prev => prev.map(k => k._id === id ? { ...k, status: 'verified' } : k));
-    } catch (err) {
-      alert("Failed to verify");
-    } finally {
-      setActionLoadingId(null);
-    }
-  };
 
-  const handleReject = async (id) => {
-    setActionLoadingId(id);
-    try {
-      await axiosInstance.post(`/kyc/reject/${id}`);
-      setKycList(prev => prev.map(k => k._id === id ? { ...k, status: 'rejected' } : k));
-    } catch (err) {
-      alert("Failed to reject");
-    } finally {
-      setActionLoadingId(null);
-    }
-  };
 
   return (
     <div className="min-h-screen bg-base-100 text-base-content p-6 pt-24 transition-colors">
       <div className="max-w-6xl mx-auto">
         <h1 className="text-3xl font-bold mb-8">Admin Dashboard</h1>
-        
-        {/* Stats Grid using DaisyUI Stats */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
           <div className="stats shadow bg-base-200 border border-base-300">
             <div className="stat">
@@ -80,7 +60,7 @@ const AdminDashboard = () => {
               <div className="stat-desc text-base-content/50">Registered on platform</div>
             </div>
           </div>
-          
+
           <div className="stats shadow bg-base-200 border border-base-300">
             <div className="stat">
               <div className="stat-title text-base-content/70">Total Projects</div>
@@ -105,9 +85,11 @@ const AdminDashboard = () => {
                     <tr className="bg-base-300 text-base-content">
                       <th>Full Name</th>
                       <th>Email/ID</th>
+                      <th>IdCard</th>
+                      <th>Selfie</th>
                       <th>Date Submitted</th>
                       <th>Status</th>
-                      <th>Actions</th>
+                      <th>View</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -115,36 +97,30 @@ const AdminDashboard = () => {
                       <tr key={k._id} className="hover:bg-base-100/50">
                         <td className="font-medium">{k.fullName}</td>
                         <td className="opacity-70">{k.submittedBy}</td>
+                        <td className="opacity-70">
+                          <img src={k.idCardUrl} alt="" /></td>
+                        <td className="opacity-70 ">
+                          <img src={k.selfieUrl} alt="" /></td>
                         <td className="text-sm">
                           {new Date(k.submittedAt).toLocaleDateString()}
                         </td>
                         <td>
-                          <div className={`badge ${
-                            k.status === 'pending' ? 'badge-warning' : 
+                          <div className={`badge ${k.status === 'pending' ? 'badge-warning' :
                             k.status === 'verified' ? 'badge-success' : 'badge-error'
-                          }`}>
+                            }`}>
                             {k.status}
                           </div>
                         </td>
                         <td>
-                          {k.status === "pending" && (
-                            <div className="flex gap-2">
-                              <button 
-                                onClick={() => handleVerify(k._id)} 
-                                disabled={actionLoadingId === k._id}
-                                className="btn btn-xs btn-success"
-                              >
-                                {actionLoadingId === k._id ? "..." : "Verify"}
-                              </button>
-                              <button 
-                                onClick={() => handleReject(k._id)} 
-                                disabled={actionLoadingId === k._id}
-                                className="btn btn-xs btn-error"
-                              >
-                                {actionLoadingId === k._id ? "..." : "Reject"}
-                              </button>
-                            </div>
-                          )}
+                          
+                        </td>
+                        <td>
+                          <button
+                            onClick={() => navigate(`/admin/kyc/${k._id}`)}
+                            className="btn btn-xs btn-primary btn-outline"
+                          >
+                            View & Review
+                          </button>
                         </td>
                       </tr>
                     ))}

@@ -28,6 +28,8 @@ import { Toaster } from "react-hot-toast";
 import ProfilePage from "./pages/ProfilePage.jsx";
 import KYCFormPage from "./pages/KYCFormPage.jsx";
 import FriendsPage from "./pages/FriendsPage.jsx";
+import MentorDetailPage from "./pages/MentorDetailPage.jsx";
+import KYCDetails from "./components/KYCDetails.jsx";
 
 const App = () => {
   const { isLoading, authUser } = useAuthUser();
@@ -52,6 +54,7 @@ const App = () => {
           <Route path="projects" element={<Projects />} />
           <Route path="payment-result" element={<PaymentResult />} />
           <Route path="project/:id" element={<ProjectdetailPage />} />
+          <Route path="mentor/:id" element={<MentorDetailPage />} />
           <Route path="submit" element={
             isAuthenticated && isOnboarded ? (
               <IdeaAnalyzer />
@@ -97,7 +100,18 @@ const App = () => {
             )
           }
         />
-
+        <Route
+          path="/admin/kyc/:id"
+          element={
+            isAuthenticated && isAdmin ? (
+              <Format showSidebar={true}>
+                <KYCDetails/>
+              </Format>
+            ) : (
+              <Navigate to="/" replace />
+            )
+          }
+        />
 
 
         <Route

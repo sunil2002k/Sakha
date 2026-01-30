@@ -61,7 +61,7 @@ const IdeaAnalyzer = () => {
         expected_outcomes: data.expected_outcomes || "",
       }));
     } catch (err) {
-      console.error(err);
+      toast.error(err);
     }
     setLoading(false);
   };
