@@ -9,15 +9,16 @@ export default function Signup() {
     fullName: "",
     email: "",
     password: "",
+    role: "student",
   });
 
   const [showPassword, setShowPassword] = useState(false);
   const { isPending, error, signupMutation } = useSignUp();
 
 
-  
 
- const handleSignup = (e) => {
+
+  const handleSignup = (e) => {
     e.preventDefault();
     signupMutation(signupData);
   };
@@ -107,7 +108,41 @@ export default function Signup() {
                     </p>
                   </div>
 
+                 
+
+                  {/* ROLE SELECTION */}
                   <div className="form-control">
+                    <label className="label">
+                      <span className="label-text">I want to join as</span>
+                    </label>
+                    <div className="flex gap-4">
+                      <label className="label cursor-pointer gap-2">
+                        <input
+                          type="radio"
+                          name="role"
+                          value="student"
+                          checked={signupData.role === "student"}
+                          onChange={(e) => setSignupData({ ...signupData, role: e.target.value })}
+                          className="radio radio-sm"
+                        />
+                        <span className="label-text">Student</span>
+                      </label>
+                      <label className="label cursor-pointer gap-2">
+                        <input
+                          type="radio"
+                          name="role"
+                          value="mentor"
+                          checked={signupData.role === "mentor"}
+                          onChange={(e) => setSignupData({ ...signupData, role: e.target.value })}
+                          className="radio radio-sm"
+                        />
+                        <span className="label-text">Mentor</span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                 <div className="form-control">
                     <label className="label cursor-pointer justify-start gap-2">
                       <input type="checkbox" className="checkbox checkbox-sm" required />
                       <span className="text-xs leading-tight">
@@ -117,7 +152,6 @@ export default function Signup() {
                       </span>
                     </label>
                   </div>
-                </div>
 
                 <button className="btn btn-primary w-full" type="submit">
                   {isPending ? (

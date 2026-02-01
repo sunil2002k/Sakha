@@ -6,7 +6,6 @@ import toast from "react-hot-toast";
 const IdeaAnalyzer = () => {
   const [pdfFile, setPdfFile] = useState(null);
   const [pdfUrl, setPdfUrl] = useState(null);
-  const [fileNames, setFileNames] = useState([]);
   const [loading, setLoading] = useState(false);
   
   const isSubmittingRef = useRef(false);

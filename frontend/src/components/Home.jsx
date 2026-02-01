@@ -8,6 +8,7 @@ import {
   TrendingUp,
   ArrowRight
 } from "lucide-react";
+import SkeletonCard from "./SkeletonCard";
 
 const Home = () => {
   const [projects, setProjects] = useState([]);
@@ -104,105 +105,59 @@ const Home = () => {
         </section>
 
         {/* FEATURED PROJECTS */}
-        <section>
-          <div className="mb-6 sm:mb-8">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div>
-                <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">
-                  Featured Projects
-                </h2>
-                <p className="opacity-70">
-                  Discover innovative ideas from our talented community
-                </p>
+        
+<section>
+  <div className="mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+    <div>
+      <h2 className="text-3xl font-black tracking-tight">Featured Projects</h2>
+      <p className="opacity-70 font-medium">Discover innovation from our community.</p>
+    </div>
+  </div>
+
+  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+    {loading ? (
+      // 1. SHOW SKELETONS WHILE LOADING DATA
+      [1, 2, 3].map((i) => <SkeletonCard key={i} />)
+    ) : (
+      featuredProjects.map((proj) => (
+        <Link to={`/project/${proj._id}`} key={proj._id} className="group">
+          <div className="card bg-base-200 hover:shadow-2xl transition-all duration-500 h-full border border-base-300/50 overflow-hidden rounded-[2rem]">
+            
+            {/* 2. OPTIMIZED IMAGE HANDLING */}
+            <figure className="relative h-48 bg-base-300 overflow-hidden">
+              <img 
+                src={proj.images?.[0]} 
+                alt={proj.title}
+                loading="lazy"
+                onLoad={(e) => e.target.classList.add('opacity-100')}
+                className="w-full h-full object-cover opacity-0 transition-opacity duration-700 group-hover:scale-110"
+              />
+              <div className="absolute top-4 right-4">
+                <span className="badge badge-primary font-black uppercase text-[10px] tracking-widest p-3 shadow-lg">
+                  {proj.category}
+                </span>
               </div>
-              {projects.length > 3 && (
-                <Link
-                  to="/projects"
-                  className="btn btn-outline btn-primary hover:bg-primary hover:text-white transition-all duration-300"
-                >
-                  View All
-                  <ArrowRight className="size-4 ml-2" />
-                </Link>
-              )}
+            </figure>
+
+            <div className="card-body p-8">
+              <h3 className="text-xl font-black group-hover:text-primary transition-colors">
+                {proj.title}
+              </h3>
+              <p className="opacity-70 text-sm line-clamp-2 font-medium">
+                {proj.description}
+              </p>
+              <div className="card-actions justify-end mt-6">
+                <span className="text-primary font-black text-xs flex items-center gap-2 group-hover:gap-3 transition-all">
+                  VIEW PROJECT <ArrowRight size={14} />
+                </span>
+              </div>
             </div>
           </div>
-          
-
-          {loading ? (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[1, 2, 3].map((n) => (
-                <div key={n} className="card bg-base-200 h-64 animate-pulse"></div>
-              ))}
-            </div>
-          ) : featuredProjects.length === 0 ? (
-            <div className="card bg-base-200 p-6 sm:p-8 text-center max-w-md mx-auto">
-              <div className="p-4 rounded-full bg-base-300 inline-flex mb-4">
-                <Sparkles className="size-8 opacity-50" />
-              </div>
-              <h3 className="font-semibold text-lg mb-2">
-                No projects yet
-              </h3>
-              <p className="text-base-content opacity-70 mb-4">
-                Be the first to submit your innovative project!
-              </p>
-              <Link to="/submit" className="btn btn-primary">
-                Submit Project
-              </Link>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {featuredProjects.map((proj) => (
-                <Link 
-                  to={`/project/${proj._id}`} 
-                  key={proj._id}
-                  className="group block"
-                >
-                  <div className="card bg-base-200 hover:shadow-lg transition-all duration-300 h-full">
-                    {/* Project Image */}
-                    <figure className="relative overflow-hidden rounded-t-2xl">
-                      {proj.images && proj.images.length > 0 ? (
-                        <img
-                          src={proj.images[0]}
-                          alt={proj.title}
-                          className="w-full h-48 object-cover transition-transform duration-500 group-hover:scale-105"
-                        />
-                      ) : (
-                        <div className="w-full h-48 bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
-                          <Rocket className="size-12 text-primary/50" />
-                        </div>
-                      )}
-                      <div className="absolute top-3 right-3">
-                        <span className="badge badge-primary">
-                          {proj.category}
-                        </span>
-                      </div>
-                    </figure>
-                    
-                    {/* Card Body */}
-                    <div className="card-body p-5">
-                      <h3 className="card-title text-lg font-semibold group-hover:text-primary transition-colors duration-300">
-                        {proj.title}
-                      </h3>
-                      
-                      <p className="text-base-content/70 text-sm line-clamp-3">
-                        {proj.description.length > 100
-                          ? proj.description.slice(0, 100) + "..."
-                          : proj.description}
-                      </p>
-                      
-                      <div className="card-actions justify-end mt-4">
-                        <button className="btn btn-ghost btn-sm text-primary group-hover:underline">
-                          View Details
-                          <ArrowRight className="size-4 ml-2 group-hover:translate-x-1 transition-transform duration-300" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          )}
-        </section>
+        </Link>
+      ))
+    )}
+  </div>
+</section>
 
         {/* FINAL CTA */}
         <section className="pt-8">
@@ -234,8 +189,8 @@ const Home = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="card bg-base-200 hover:shadow-lg transition-all duration-300">
               <div className="card-body p-6 text-center">
-                <div className="p-3 rounded-full bg-primary/10 inline-flex mb-3">
-                  <Rocket className="size-6 text-primary" />
+                <div className="p-3 rounded-full bg-primary/10 inline-flex mb-3 items-center justify-center">
+                  <Rocket className="size-6 text-primary " />
                 </div>
                 <h4 className="font-semibold mb-2">Submit Project</h4>
                 <p className="text-sm opacity-70 mb-3">Share your innovative idea with our community</p>
@@ -244,7 +199,7 @@ const Home = () => {
             </div>
             <div className="card bg-base-200 hover:shadow-lg transition-all duration-300">
               <div className="card-body p-6 text-center">
-                <div className="p-3 rounded-full bg-secondary/10 inline-flex mb-3">
+                <div className="p-3 rounded-full bg-secondary/10 inline-flex mb-3 items-center justify-center">
                   <Users className="size-6 text-secondary" />
                 </div>
                 <h4 className="font-semibold mb-2">Find Mentors</h4>
@@ -254,7 +209,7 @@ const Home = () => {
             </div>
             <div className="card bg-base-200 hover:shadow-lg transition-all duration-300">
               <div className="card-body p-6 text-center">
-                <div className="p-3 rounded-full bg-accent/10 inline-flex mb-3">
+                <div className="p-3 rounded-full bg-accent/10 inline-flex mb-3 items-center justify-center">
                   <TrendingUp className="size-6 text-accent" />
                 </div>
                 <h4 className="font-semibold mb-2">Explore Projects</h4>

@@ -24,6 +24,13 @@ const projectSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  updates: [
+    {
+      title: { type: String, default: "Project Update" },
+      content: { type: String, required: true },          
+      date: { type: Date, default: Date.now },            
+    }
+  ],
   type: {
     type: String,
     enum: ['mentorship', 'funding'],

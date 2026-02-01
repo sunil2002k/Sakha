@@ -7,13 +7,13 @@ import {
   FaSearch,
   FaTimesCircle,
 } from "react-icons/fa";
-import { BellIcon, LogOutIcon } from "lucide-react";
+import { BellIcon, LogOutIcon, ShieldCheck } from "lucide-react";
 import ThemeSelector from "./ThemeSelector";
 import useAuthUser from "../hooks/useAuthUser";
 import useLogout from "../hooks/useLogout";
 import logo from '../assets/logo.png'
 
-const Navbar = ({ hideLogo}) => {
+const Navbar = ({ hideLogo }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [showUserPopup, setShowUserPopup] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -26,7 +26,6 @@ const Navbar = ({ hideLogo}) => {
   const { logoutMutation } = useLogout();
 
   useEffect(() => {
-    // quick debug to confirm authUser shape
     console.debug("Navbar authUser:", authUser);
   }, [authUser]);
 
@@ -35,9 +34,9 @@ const Navbar = ({ hideLogo}) => {
     { name: "Home", path: "/" },
     { name: "Submit", path: "/submit" },
     { name: "About", path: "/about" },
-    ...(authUser?.role === "admin" 
-    ? [{ name: "Admin Panel", path: "/admin/dashboard" }] 
-    : [])
+    ...(authUser?.role === "admin"
+      ? [{ name: "Admin Panel", path: "/admin/dashboard" }]
+      : [])
   ];
 
   const handleSearch = (e) => {
@@ -153,16 +152,16 @@ const Navbar = ({ hideLogo}) => {
           )}
 
           {/* Theme selector (desktop only) */}
-          
-            <div className="hidden md:flex items-center ml-2 relative">
-              <ThemeSelector />
-            </div>
-          
+
+          <div className="hidden md:flex items-center ml-2 relative">
+            <ThemeSelector />
+          </div>
+
           {/* User / auth popup */}
           <div className="relative" ref={popupRef}>
             <button
               onClick={(e) => {
-                e.stopPropagation(); 
+                e.stopPropagation();
                 setShowUserPopup((prev) => !prev);
               }}
               className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-primary to-secondary text-primary-content text-sm font-semibold shadow-[0_0_15px_rgba(129,140,248,0.8)] hover:brightness-110"
@@ -185,9 +184,11 @@ const Navbar = ({ hideLogo}) => {
             {showUserPopup && (
               <div
                 className="absolute right-0 mt-2 w-64 rounded-2xl bg-base-100 border border-base-300 shadow-2xl p-3 z-[9999] backdrop-blur-md"
-                onClick={(e) =>{ e.stopPropagation();
-                  setShowUserPopup(false)}
-                } // keep clicks inside from bubbling out
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowUserPopup(false)
+                }
+                } 
               >
                 {authUser ? (
                   <>
@@ -196,9 +197,27 @@ const Navbar = ({ hideLogo}) => {
                         {authUser?.fullName?.[0] || "U"}
                       </div>
                       <div className="flex flex-col">
-                        <span className="text-sm font-semibold text-base-content">
-                          {authUser?.fullName || "User"}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-semibold text-base-content">
+                            {authUser?.fullName || "User"}
+                          </span>
+
+                          {authUser.isKYCverified ? (
+                            <span className="badge badge-success gap-1 text-[10px]">
+                              <ShieldCheck size={14} />
+                              Verified
+                            </span>
+                          ) : (
+                            <button
+                              onClick={() => navigate("/kyc")}
+                              className="btn btn-warning btn-xs btn-outline"
+                            >
+                              Verify Identity
+                            </button>
+                          )}
+                        </div>
+
+
                         {authUser.email && (
                           <span className="text-[11px] text-base-content/60 truncate">
                             {authUser?.email}
@@ -214,6 +233,13 @@ const Navbar = ({ hideLogo}) => {
                         className="w-full rounded-lg border border-base-300/80 bg-base-200/70 px-3 py-2 text-left text-base-content hover:bg-base-300/90 transition-colors"
                       >
                         Profile
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => navigate("/myprojects")}
+                        className="w-full rounded-lg border border-base-300/80 bg-base-200/70 px-3 py-2 text-left text-base-content hover:bg-base-300/90 transition-colors"
+                      >
+                        My Projects
                       </button>
                       <button
                         type="button"

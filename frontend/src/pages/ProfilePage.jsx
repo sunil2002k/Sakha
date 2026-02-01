@@ -31,7 +31,7 @@ const ProfilePage = () => {
           <div className="text-center md:text-left">
             <h1 className="text-4xl font-black mb-1">{authUser.fullName}</h1>
             <p className="text-base-content/60 text-lg mb-3">{authUser.email}</p>
-            {authUser.isKycVerified ? (
+            {authUser.isKYCverified ? (
               <div className="badge badge-success gap-2 py-3 px-4">
                 <ShieldCheck size={16} /> Verified Investor/Creator
               </div>

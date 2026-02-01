@@ -1,9 +1,9 @@
-import React,{ useState } from "react";
+import React, { useState } from "react";
 import useAuthUser from "../hooks/useAuthUser";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import { completeOnboarding } from "../lib/api";
-import { LoaderIcon, MapPinIcon, ShipWheelIcon, ShuffleIcon,CameraIcon } from "lucide-react";
+import { LoaderIcon, MapPinIcon, ShipWheelIcon, ShuffleIcon, CameraIcon } from "lucide-react";
 import { LANGUAGES } from "../constants";
 
 const OnboardingPage = () => {
@@ -17,6 +17,8 @@ const OnboardingPage = () => {
     learningLanguage: authUser?.learningLanguage || "",
     location: authUser?.location || "",
     profilePic: authUser?.profilePic || "",
+    resume: authUser?.resume || "",
+    resumeFile: null,
   });
 
   const { mutate: onboardingMutation, isPending } = useMutation({
@@ -34,7 +36,22 @@ const OnboardingPage = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    onboardingMutation(formState);
+    // Create FormData for file upload
+    const formData = new FormData();
+    formData.append("fullName", formState.fullName);
+    formData.append("bio", formState.bio);
+    formData.append("nativeLanguage", formState.nativeLanguage);
+    formData.append("learningLanguage", formState.learningLanguage);
+    formData.append("location", formState.location);
+
+    // If resume exists and is not from a previous upload (i.e., it's a File object or base64)
+    if (formState.resume && !formState.resume.startsWith("http")) {
+      if (formState.resumeFile) {
+        formData.append("resume", formState.resumeFile);
+      }
+    }
+
+    onboardingMutation(formData);
   };
 
   const handleRandomAvatar = () => {
@@ -43,6 +60,15 @@ const OnboardingPage = () => {
 
     setFormState({ ...formState, profilePic: randomAvatar });
     toast.success("Random profile picture generated!");
+  };
+
+  const handleResumeUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Store the file object for FormData upload
+    setFormState({ ...formState, resumeFile: file, resume: file.name });
+    toast.success("Resume selected successfully!");
   };
 
   return (
@@ -167,6 +193,29 @@ const OnboardingPage = () => {
                 />
               </div>
             </div>
+
+            {/* RESUME UPLOAD - ONLY FOR MENTORS */}
+            {authUser?.role === "mentor" && (
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text">Resume/CV</span>
+                </label>
+                <input
+                  type="file"
+                  accept=".pdf,.doc,.docx"
+                  onChange={handleResumeUpload}
+                  className="file-input file-input-bordered w-full"
+                />
+                <p className="text-xs opacity-70 mt-1">
+                  Upload your resume (PDF, DOC, DOCX)
+                </p>
+                {formState.resume && (
+                  <div className="mt-2 p-2 bg-success/10 rounded border border-success/30 text-success text-sm">
+                    ✓ Resume uploaded
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* SUBMIT BUTTON */}
 

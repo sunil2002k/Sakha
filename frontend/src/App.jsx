@@ -30,6 +30,8 @@ import KYCFormPage from "./pages/KYCFormPage.jsx";
 import FriendsPage from "./pages/FriendsPage.jsx";
 import MentorDetailPage from "./pages/MentorDetailPage.jsx";
 import KYCDetails from "./components/KYCDetails.jsx";
+import MyProjectPage from "./pages/MyProjectPage.jsx";
+import ScrollToTop from "./components/ScrollToTop.jsx";
 
 const App = () => {
   const { isLoading, authUser } = useAuthUser();
@@ -46,8 +48,9 @@ const App = () => {
 
   return (
     <div data-theme={theme}>
+       <ScrollToTop/>
       <Routes>
-        <Route path="/" element={<LayOut />}>
+          <Route path="/" element={<LayOut />}>
           <Route index element={<Home />} />
           <Route path="about" element={<About />} />
           <Route path="search" element={<Search />} />
@@ -146,6 +149,17 @@ const App = () => {
           element={
             isAuthenticated && isOnboarded ? (
               <ProfilePage />
+            ) : (
+              <Navigate to={redirectForProtected} replace />
+            )
+          }
+        />
+
+        <Route
+          path="/myprojects"
+          element={
+            isAuthenticated && isOnboarded ? (
+              <MyProjectPage />
             ) : (
               <Navigate to={redirectForProtected} replace />
             )

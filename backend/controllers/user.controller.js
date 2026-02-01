@@ -50,7 +50,7 @@ export const getUser = async (req, res, next) => {
 export const getUserById = async (req, res) => {
   try {
     const userId = req.params.id.trim();
-    const user = await User.findById(userId);
+    const user = await User.findById(userId); // This fetches all fields (including social links, bio, etc.)
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
@@ -59,7 +59,7 @@ export const getUserById = async (req, res) => {
     res.status(200).json({
       success: true,
       message: "User fetched successfully",
-      data: user,
+      data: user, // Ensure data is nested under 'data'
     });
   } catch (error) {
     console.error("Error fetching user:", error);

@@ -22,7 +22,6 @@ const KYCSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    // Added submittedBy field to link KYC to a specific user
     submittedBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",

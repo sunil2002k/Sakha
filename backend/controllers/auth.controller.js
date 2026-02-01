@@ -2,9 +2,10 @@ import { upsertStreamUser } from "../utils/stream.js";
 import User from "../models/user.model.js";
 import jwt from "jsonwebtoken";
 import { JWT_SECRET, JWT_EXPIRES_IN, NODE_ENV } from "../config/env.js";
+import { uploadOnCloudinary } from "../utils/cloudinary.js";
 
 export async function signUp(req, res) {
-  const { email, password, fullName } = req.body;
+  const { email, password, fullName, role } = req.body;
 
   try {
     if (!email || !password || !fullName) {
@@ -37,6 +38,7 @@ export async function signUp(req, res) {
       fullName,
       password,
       profilePic: randomAvatar,
+      role: role || "student",
     });
 
     try {
@@ -138,11 +140,29 @@ export async function onboard(req, res) {
       });
     }
 
-    const updatedUser = await User.findByIdAndUpdate(
-      userId,
-      { ...req.body, isOnboarded: true },
-      { new: true }
-    );
+    const updateData = {
+      ...req.body,
+      isOnboarded: true,
+    };
+
+    // Handle resume upload for mentors
+    if (req.file && req.user.role === "mentor") {
+      try {
+        const uploadResponse = await uploadOnCloudinary(req.file.path);
+        if (uploadResponse) {
+          updateData.resume = uploadResponse.secure_url;
+        }
+      } catch (error) {
+        console.error("Error uploading resume to Cloudinary:", error);
+        return res
+          .status(500)
+          .json({ message: "Failed to upload resume to Cloudinary" });
+      }
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(userId, updateData, {
+      new: true,
+    });
 
     if (!updatedUser) {
       return res.status(404).json({ message: "User not found" });
@@ -155,12 +175,12 @@ export async function onboard(req, res) {
         image: updatedUser.profilePic || "",
       });
       console.log(
-        `Stream user updated after onboarding for ${updatedUser.fullName}`
+        `Stream user updated after onboarding for ${updatedUser.fullName}`,
       );
     } catch (streamError) {
       console.warn(
         "Error updating Stream user during onboarding:",
-        streamError?.message || streamError
+        streamError?.message || streamError,
       );
     }
 
