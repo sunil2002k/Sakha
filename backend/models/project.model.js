@@ -41,6 +41,11 @@ const projectSchema = new mongoose.Schema({
     type: Number,
     required: function () {
       return this.type === 'funding';
+    }},
+  problem: {
+    type: String,
+    required: function () {
+      return this.type === 'mentorship';
     },
   },
   images:{

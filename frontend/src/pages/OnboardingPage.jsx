@@ -44,7 +44,6 @@ const OnboardingPage = () => {
     formData.append("learningLanguage", formState.learningLanguage);
     formData.append("location", formState.location);
 
-    // If resume exists and is not from a previous upload (i.e., it's a File object or base64)
     if (formState.resume && !formState.resume.startsWith("http")) {
       if (formState.resumeFile) {
         formData.append("resume", formState.resumeFile);

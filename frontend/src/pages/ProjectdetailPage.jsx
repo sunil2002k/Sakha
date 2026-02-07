@@ -13,13 +13,14 @@ import {
 } from "react-icons/fa";
 import PaymentProgress from "../components/PaymentProgress";
 import toast from "react-hot-toast";
-import ChatLoader from "../components/ChatLoader";
+import PageLoader from "../components/PageLoader";
 
 const ProjectdetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [project, setProject] = useState(null);
   const [creator, setCreator] = useState(null);
+  const [fundedProjects, setFundedProjects] = useState([]);
   const [showCustomAmountInput, setShowCustomAmountInput] = useState(false);
   const [customAmount, setCustomAmount] = useState("");
   const [loading, setLoading] = useState(true);
@@ -35,6 +36,7 @@ const ProjectdetailPage = () => {
       const res = await axios.get(`${APIURL}/api/v1/projects/${id}`);
       const proj = res.data.project ?? res.data;
       setProject(proj);
+      setFundedProjects((res.data.fundedProjects || []).filter(fp => fp.status === "completed"));
 
       const addedById = proj?.addedBy && (typeof proj.addedBy === "string" ? proj.addedBy : proj.addedBy._id ?? null);
 
@@ -126,7 +128,7 @@ const ProjectdetailPage = () => {
   };
 
   if (loading) return (
-    <ChatLoader />
+    <PageLoader />
   );
 
   const isFunding = project.type === "funding";
@@ -197,7 +199,7 @@ const ProjectdetailPage = () => {
 
             {/* Content Tabs */}
             <div className="mt-12 border-b border-base-300 flex gap-10">
-              {["about", "outcomes", "updates"].map((tab) => (
+              {["about", "outcomes", "updates", "Issues"].map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
@@ -225,6 +227,9 @@ const ProjectdetailPage = () => {
               {activeTab === "outcomes" && (
                 <p className="opacity-80 text-lg leading-relaxed">{project.expected_outcomes || "The project aims to create a sustainable impact in the local community through technology."}</p>
               )}
+              {activeTab === "Issues" && (
+                <p className="opacity-80 text-lg leading-relaxed">{project.problem || "No issues. This project is submitted to raise fund."}</p>
+              )}
               {activeTab === "updates" && (
                 <div className="space-y-6">
                   {project.updates && project.updates.length > 0 ? (
@@ -243,6 +248,28 @@ const ProjectdetailPage = () => {
                   ) : (
                     <p className="opacity-60">No updates available yet.</p>
                   )}
+
+                  <div>
+                    <h3 className="text-2xl font-black mt-6 mb-4">Recent Backers</h3>
+                    {fundedProjects && fundedProjects.length > 0 ? (
+                      <div className="space-y-3">
+                        {fundedProjects.filter(fp => fp.status === "completed").map((fp) => (
+                          <div key={fp._id} className="bg-base-200 border border-base-300 rounded-2xl p-4 flex items-center justify-between">
+                            <div>
+                              <div className="font-black">{fp.fundedBy?.fullName || fp.fundedBy?.email || "Anonymous"}</div>
+                              <div className="text-xs opacity-50">{new Date(fp.purchaseDate || fp.createdAt || fp.updatedAt).toLocaleDateString()}</div>
+                            </div>
+                            <div className="text-right">
+                              <div className="font-black">NPR {parseInt(fp.totalPrice || 0).toLocaleString()}</div>
+                              <div className="text-xs opacity-50">{fp.paymentMethod}</div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="opacity-60">No backers yet.</p>
+                    )}
+                  </div>
                 </div>
               )}
 

@@ -161,37 +161,28 @@ export const THEMES = [
     colors: ["#1e293b", "#f5734c", "#ec4899", "#ffffff"],
   },
 ];
-
 export const LANGUAGES = [
-  "English",
-  "Spanish",
-  "French",
-  "German",
-  "Mandarin",
-  "Japanese",
-  "Korean",
-  "Hindi",
-  "Russian",
-  "Portuguese",
-  "Arabic",
-  "Italian",
-  "Turkish",
-  "Dutch",
+  "JavaScript", "Python", "Java", "TypeScript", "C++", 
+  "Rust", "Go", "PHP", "Swift", "Kotlin", "Ruby"
 ];
 
+// index.js (Constants)
+import { 
+  SiJavascript, SiPython, SiCplusplus, SiTypescript, 
+  SiRust, SiGo, SiPhp, SiSwift, SiKotlin, SiRuby 
+} from "react-icons/si";
+import { FaJava } from "react-icons/fa";
+
 export const LANGUAGE_TO_FLAG = {
-  english: "gb",
-  spanish: "es",
-  french: "fr",
-  german: "de",
-  mandarin: "cn",
-  japanese: "jp",
-  korean: "kr",
-  hindi: "in",
-  russian: "ru",
-  portuguese: "pt",
-  arabic: "sa",
-  italian: "it",
-  turkish: "tr",
-  dutch: "nl",
+  javascript: { icon: SiJavascript, color: "#F7DF1E" },
+  python: { icon: SiPython, color: "#3776AB" },
+  java: { icon: FaJava, color: "#007396" },
+  typescript: { icon: SiTypescript, color: "#3178C6" },
+  "c++": { icon: SiCplusplus, color: "#00599C" },
+  rust: { icon: SiRust, color: "#000000" },
+  go: { icon: SiGo, color: "#00ADD8" },
+  php: { icon: SiPhp, color: "#777BB4" },
+  swift: { icon: SiSwift, color: "#F05138" },
+  kotlin: { icon: SiKotlin, color: "#7F52FF" },
+  ruby: { icon: SiRuby, color: "#CC342D" },
 };

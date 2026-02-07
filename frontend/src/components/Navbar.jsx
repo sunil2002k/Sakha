@@ -82,7 +82,11 @@ const Navbar = ({ hideLogo }) => {
   }, [showUserPopup]);
 
   return (
-    <header className="w-full bg-base-100/80 backdrop-blur-xl border-b border-base-300 shadow-[0_0_30px_rgba(15,23,42,0.8)] z-50 sticky top-0">
+    <header className={`w-full z-50 sticky top-0 border-b transition-colors duration-300 ${
+      hideLogo 
+        ? "bg-base-200/50 backdrop-blur-sm border-base-300" 
+        : "bg-base-100/80 backdrop-blur-xl border-base-300 shadow-[0_0_30px_rgba(15,23,42,0.8)]"
+    }`}>
       <div className="mx-auto flex items-center justify-between px-4 py-3 lg:px-8">
         <div className="flex items-center gap-4">
           {!hideLogo && (
@@ -96,6 +100,7 @@ const Navbar = ({ hideLogo }) => {
               </span>
             </Link>
           )}
+          
         </div>
 
         {/* Center: desktop search */}
@@ -124,22 +129,26 @@ const Navbar = ({ hideLogo }) => {
 
         {/* Right: desktop nav + user */}
         <div className="hidden items-center gap-5 md:flex">
-          <nav className="flex items-center gap-2">
-            {navLinks.map((link) => (
-              <NavLink
-                key={link.name}
-                to={link.path}
-                className={({ isActive }) =>
-                  `text-xs md:text-sm px-3 py-1 rounded-full font-medium tracking-wide transition-all duration-200 ${isActive
-                    ? "bg-primary/30 text-primary-content border border-primary/60 shadow-[0_0_12px_rgba(168,85,247,0.7)]"
-                    : "text-base-content/85 hover:bg-base-200/7 hover:text-primary border border-transparent"
-                  }`
-                }
-              >
-                {link.name}
-              </NavLink>
-            ))}
-          </nav>
+          
+          {/* ONLY show these links if the sidebar is NOT present */}
+          {!hideLogo && (
+            <nav className="flex items-center gap-2">
+              {navLinks.map((link) => (
+                <NavLink
+                  key={link.name}
+                  to={link.path}
+                  className={({ isActive }) =>
+                    `text-xs md:text-sm px-3 py-1 rounded-full font-medium tracking-wide transition-all duration-200 ${isActive
+                      ? "bg-primary/30 text-primary-content border border-primary/60 shadow-[0_0_12px_rgba(168,85,247,0.7)]"
+                      : "text-base-content/85 hover:bg-base-200/7 hover:text-primary border border-transparent"
+                    }`
+                  }
+                >
+                  {link.name}
+                </NavLink>
+              ))}
+            </nav>
+          )}
 
           {authUser && (
             <Link

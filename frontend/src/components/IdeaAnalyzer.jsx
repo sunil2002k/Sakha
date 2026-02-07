@@ -1,5 +1,6 @@
 import React, { useState, useRef } from "react";
 import axios from "axios";
+import { axiosInstance } from "../lib/axios.js";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 
@@ -7,7 +8,7 @@ const IdeaAnalyzer = () => {
   const [pdfFile, setPdfFile] = useState(null);
   const [pdfUrl, setPdfUrl] = useState(null);
   const [loading, setLoading] = useState(false);
-  
+
   const isSubmittingRef = useRef(false);
   const [form, setForm] = useState({
     title: "",
@@ -17,6 +18,7 @@ const IdeaAnalyzer = () => {
     expected_outcomes: "",
     type: "",
     targetAmount: "",
+    problem: "",
   });
   const [files, setFiles] = useState([]);
   const navigate = useNavigate();
@@ -82,16 +84,7 @@ const IdeaAnalyzer = () => {
     isSubmittingRef.current = true;
     setLoading(true);
 
-    const token = localStorage.getItem("token");
-    if (!token) {
-      toast.error("Please login to submit a project.");
-      setLoading(false);
-      isSubmittingRef.current = false;
-      navigate("/login");
-      return;
-    }
-
-    const API_ENDPOINT = `${APIURL}/api/v1/projects/create-project`;
+    const API_ENDPOINT = "/projects/create-project";
 
     const formDataToSubmit = new FormData();
     Object.keys(form).forEach((key) => {
@@ -105,16 +98,12 @@ const IdeaAnalyzer = () => {
     });
 
     try {
-      const res = await axios.post(API_ENDPOINT, formDataToSubmit, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const res = await axiosInstance.post(API_ENDPOINT, formDataToSubmit);
 
       toast.success("Project submitted successfully!");
       navigate(`/project/${res.data.project._id}`);
     } catch (error) {
-      toast.error("Submission error:", error.response?.data || error.message);
+      toast.error(error.response?.data?.message || "Project submission failed");
     } finally {
       setLoading(false);
       isSubmittingRef.current = false;
@@ -326,7 +315,22 @@ const IdeaAnalyzer = () => {
                 />
               </div>
             )}
-
+            {form.type === "mentorship" && (
+              <div className="bg-base-300/30 rounded-xl p-6 border border-base-300 animate-in fade-in slide-in-from-top-2">
+                <label className="label text-base-content font-medium" htmlFor="problem">
+                  Problem
+                </label>
+                <textarea
+                  id="problem"
+                  name="problem"
+                  placeholder="problems..."
+                  value={form.problem}
+                  onChange={handleChange}
+                  className="textarea textarea-bordered w-full bg-base-100 text-base-content min-h-[120px]"
+                  required
+                />
+              </div>
+            )}
             <button
               type="submit"
               disabled={loading}

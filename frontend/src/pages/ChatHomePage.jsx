@@ -1,12 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   getOutgoingFriendReqs,
   getRecommendedUsers,
   getUserFriends,
   sendFriendRequest,
 } from "../lib/api.js";
-import { Link } from "react-router";
 import {
   CheckCircleIcon,
   MapPinIcon,
@@ -20,6 +20,7 @@ import  { getLanguageFlag } from "../components/FriendCard";
 
 const ChatHomePage = () => {
   const queryClient = useQueryClient();
+    const navigate = useNavigate();
   const [outgoingRequestsIds, setOutgoingRequestsIds] = useState(new Set());
 
   const { data: friends = [], isLoading: loadingFriends } = useQuery({
@@ -49,6 +50,9 @@ const ChatHomePage = () => {
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: ["outgoingFriendReqs"] }),
   });
+
+
+  
 
   useEffect(() => {
     const outgoingIds = new Set();
@@ -103,7 +107,7 @@ const ChatHomePage = () => {
                     key={user._id}
                     className="card bg-base-200 hover:shadow-lg transition-all duration-300"
                   >
-                    <div className="card-body p-5 space-y-4">
+                    <div className="card-body p-5 space-y-4" onClick={()=>{navigate(`/mentor/${user._id}`)}}>
                       <div className="flex items-center gap-3">
                         <div className="avatar size-16 rounded-full">
                           <img src={user.profilePic} alt={user.fullName} />
@@ -143,7 +147,11 @@ const ChatHomePage = () => {
                         className={`btn w-full mt-2 ${
                           hasRequestBeenSent ? "btn-disabled" : "btn-primary"
                         } `}
-                        onClick={() => sendRequestMutation(user._id)}
+                        onClick={(e) =>{
+                          e.stopPropagation();
+                          sendRequestMutation(user._id);
+
+                        } }
                         disabled={hasRequestBeenSent || isPending}
                       >
                         {hasRequestBeenSent ? (

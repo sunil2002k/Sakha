@@ -38,9 +38,8 @@ export async function getUserFriends() {
 }
 
 export async function getRecommendedUsers() {
-  const response = await axiosInstance.get("/users");
+  const response = await axiosInstance.get("/users/recommended");
   const data = response?.data;
-  // normalize to array for safety
   if (Array.isArray(data)) return data;
   if (Array.isArray(data?.data)) return data.data;
   if (Array.isArray(data?.users)) return data.users;

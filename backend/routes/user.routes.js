@@ -4,6 +4,7 @@ import {
   getUserById,
   getFriendRequests,
   getOutgoingFriendReqs,
+  getRecommendedUsers,
   getMyFriends,
   sendFriendRequest,
   acceptFriendRequest,
@@ -19,7 +20,7 @@ router.get("/", getUsers);
 router.get("/friend-requests", authorize, getFriendRequests);
 router.get("/outgoing-friend-requests", authorize, getOutgoingFriendReqs);
 router.get("/friends", authorize, getMyFriends);
-
+router.get("/recommended", authorize, getRecommendedUsers);
 
 // Friend request actions
 router.post("/friend-request/:id", authorize, sendFriendRequest);

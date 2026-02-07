@@ -10,6 +10,11 @@ import ChatPage from "./pages/ChatPage.jsx";
 import OnboardingPage from "./pages/OnboardingPage.jsx";
 import AdminDashboard from "./pages/AdminDashboard.jsx";
 import ProjectdetailPage from "./pages/ProjectdetailPage.jsx";
+import ProfilePage from "./pages/ProfilePage.jsx";
+import KYCFormPage from "./pages/KYCFormPage.jsx";
+import FriendsPage from "./pages/FriendsPage.jsx";
+import MentorDetailPage from "./pages/MentorDetailPage.jsx";
+import MyProjectPage from "./pages/MyProjectPage.jsx";
 
 import Home from "./components/Home.jsx";
 import IdeaAnalyzer from "./components/IdeaAnalyzer.jsx";
@@ -20,18 +25,14 @@ import PaymentResult from "./components/PaymentResult.jsx";
 import LayOut from "./components/LayOut.jsx";
 import Format from "./components/Format.jsx";
 import PageLoader from "./components/PageLoader.jsx";
+import ScrollToTop from "./components/ScrollToTop.jsx";
+import KYCDetails from "./components/KYCDetails.jsx";
 
 import useAuthUser from "./hooks/useAuthUser.js";
 import { useThemeStore } from "./store/useThemeStore.js";
 
 import { Toaster } from "react-hot-toast";
-import ProfilePage from "./pages/ProfilePage.jsx";
-import KYCFormPage from "./pages/KYCFormPage.jsx";
-import FriendsPage from "./pages/FriendsPage.jsx";
-import MentorDetailPage from "./pages/MentorDetailPage.jsx";
-import KYCDetails from "./components/KYCDetails.jsx";
-import MyProjectPage from "./pages/MyProjectPage.jsx";
-import ScrollToTop from "./components/ScrollToTop.jsx";
+
 
 const App = () => {
   const { isLoading, authUser } = useAuthUser();

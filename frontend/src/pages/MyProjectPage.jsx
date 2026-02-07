@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { axiosInstance } from "../lib/axios";
 import { FaPlus, FaRocket, FaEdit, FaEye, FaBullhorn } from "react-icons/fa";
 import toast from "react-hot-toast";
-import ChatLoader from "../components/ChatLoader";
+import PageLoader from "../components/PageLoader";
 
 const MyProjectPage = () => {
   const [myProjects, setMyProjects] = useState([]);
@@ -61,7 +61,7 @@ const MyProjectPage = () => {
   };
 
   if (loading) return (
-    <ChatLoader/>
+    <PageLoader/>
   );
 
   return (
