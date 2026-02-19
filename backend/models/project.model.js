@@ -1,14 +1,17 @@
 import mongoose from "mongoose";
 
+// Your existing schema with admin fields added at the bottom.
+// Nothing removed — only additions marked with "NEW".
+
 const projectSchema = new mongoose.Schema({
-    title:{
-         type: String,
-        required:true,
-        trim: true,
-        minLength: 2,
-        maxLength: 100,
-    },
-    description: {
+  title: {
+    type: String,
+    required: true,
+    trim: true,
+    minLength: 2,
+    maxLength: 100,
+  },
+  description: {
     type: String,
     required: true,
   },
@@ -26,29 +29,30 @@ const projectSchema = new mongoose.Schema({
   },
   updates: [
     {
-      title: { type: String, default: "Project Update" },
-      content: { type: String, required: true },          
-      date: { type: Date, default: Date.now },            
-    }
+      title:   { type: String, default: "Project Update" },
+      content: { type: String, required: true },
+      date:    { type: Date, default: Date.now },
+    },
   ],
   type: {
     type: String,
-    enum: ['mentorship', 'funding'],
-    default: 'mentorship',
+    enum: ["mentorship", "funding"],
+    default: "mentorship",
     required: true,
   },
   targetAmount: {
     type: Number,
     required: function () {
-      return this.type === 'funding';
-    }},
+      return this.type === "funding";
+    },
+  },
   problem: {
     type: String,
     required: function () {
-      return this.type === 'mentorship';
+      return this.type === "mentorship";
     },
   },
-  images:{
+  images: {
     type: [String],
     required: true,
   },
@@ -61,5 +65,30 @@ const projectSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+
+  // ── NEW: Admin review fields ──────────────────────────────
+  adminStatus: {
+    type: String,
+    enum: ["pending", "approved", "rejected"],
+    default: "pending",
+  },
+  isFlagged: {
+    type: Boolean,
+    default: false,
+  },
+  reviewNote: {
+    type: String,
+    default: "",
+  },
+  reviewedAt: {
+    type: Date,
+    default: null,
+  },
+  reviewedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    default: null,
+  },
 });
+
 export default mongoose.models.Project || mongoose.model("Project", projectSchema);

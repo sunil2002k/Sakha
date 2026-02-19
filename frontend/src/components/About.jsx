@@ -92,7 +92,7 @@ const About = () => {
               Our <span className="text-primary">Mission</span>
             </h2>
             <p className="text-lg opacity-70 mb-6 leading-relaxed">
-              At Sakha, we believe that every great idea deserves a chance to flourish. Our mission is to democratize
+              At InnovateU, we believe that every great idea deserves a chance to flourish. Our mission is to democratize
               access to project development resources by leveraging artificial intelligence and community collaboration.
             </p>
             <p className="text-lg opacity-70 mb-8 leading-relaxed">

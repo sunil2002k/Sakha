@@ -166,7 +166,6 @@ export const LANGUAGES = [
   "Rust", "Go", "PHP", "Swift", "Kotlin", "Ruby"
 ];
 
-// index.js (Constants)
 import { 
   SiJavascript, SiPython, SiCplusplus, SiTypescript, 
   SiRust, SiGo, SiPhp, SiSwift, SiKotlin, SiRuby 
@@ -185,4 +184,12 @@ export const LANGUAGE_TO_FLAG = {
   swift: { icon: SiSwift, color: "#F05138" },
   kotlin: { icon: SiKotlin, color: "#7F52FF" },
   ruby: { icon: SiRuby, color: "#CC342D" },
+};
+
+export const formatNPR = (amount) => {
+  return new Intl.NumberFormat('en-NP', {
+    style: 'currency',
+    currency: 'NPR',
+    currencyDisplay: 'symbol', 
+  }).format(amount);
 };

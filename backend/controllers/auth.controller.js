@@ -13,9 +13,7 @@ export async function signUp(req, res) {
     }
 
     if (password.length < 6) {
-      return res
-        .status(400)
-        .json({ message: "Password must be at least 6 characters" });
+      return res.status(400).json({ message: "Password must be at least 6 characters" });
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -25,9 +23,7 @@ export async function signUp(req, res) {
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res
-        .status(400)
-        .json({ message: "Email already exists, please use a different one" });
+      return res.status(400).json({ message: "Email already exists, please use a different one" });
     }
 
     const idx = Math.floor(Math.random() * 100) + 1;
@@ -88,6 +84,14 @@ export async function signIn(req, res) {
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
+    // ── NEW: Block banned users from logging in ───────────────
+    if (user.isBanned) {
+      return res.status(403).json({
+        message: "Your account has been suspended. Please contact support.",
+      });
+    }
+    // ─────────────────────────────────────────────────────────
+
     const token = jwt.sign({ userId: user._id.toString() }, JWT_SECRET, {
       expiresIn: JWT_EXPIRES_IN,
     });
@@ -118,16 +122,9 @@ export async function onboard(req, res) {
   try {
     const userId = req.user._id;
 
-    const { fullName, bio, nativeLanguage, learningLanguage, location } =
-      req.body;
+    const { fullName, bio, nativeLanguage, learningLanguage, location, profilePic } = req.body;
 
-    if (
-      !fullName ||
-      !bio ||
-      !nativeLanguage ||
-      !learningLanguage ||
-      !location
-    ) {
+    if (!fullName || !bio || !nativeLanguage || !learningLanguage || !location) {
       return res.status(400).json({
         message: "All fields are required",
         missingFields: [
@@ -141,28 +138,38 @@ export async function onboard(req, res) {
     }
 
     const updateData = {
-      ...req.body,
+      fullName,
+      bio,
+      nativeLanguage,
+      learningLanguage,
+      location,
       isOnboarded: true,
     };
 
-    // Handle resume upload for mentors
+    if (profilePic) {
+      updateData.profilePic = profilePic;
+    }
+
     if (req.file && req.user.role === "mentor") {
       try {
-        const uploadResponse = await uploadOnCloudinary(req.file.path);
+        const uploadResponse = await uploadOnCloudinary(req.file.path, {
+          resource_type: "raw",
+          folder: "resumes",
+          use_filename: true,
+          unique_filename: true,
+        });
+
         if (uploadResponse) {
           updateData.resume = uploadResponse.secure_url;
+          updateData.resumeResourceType = uploadResponse.resource_type;
         }
       } catch (error) {
         console.error("Error uploading resume to Cloudinary:", error);
-        return res
-          .status(500)
-          .json({ message: "Failed to upload resume to Cloudinary" });
+        return res.status(500).json({ message: "Failed to upload resume to Cloudinary" });
       }
     }
 
-    const updatedUser = await User.findByIdAndUpdate(userId, updateData, {
-      new: true,
-    });
+    const updatedUser = await User.findByIdAndUpdate(userId, updateData, { new: true });
 
     if (!updatedUser) {
       return res.status(404).json({ message: "User not found" });
@@ -174,14 +181,9 @@ export async function onboard(req, res) {
         name: updatedUser.fullName,
         image: updatedUser.profilePic || "",
       });
-      console.log(
-        `Stream user updated after onboarding for ${updatedUser.fullName}`,
-      );
+      console.log(`Stream user updated after onboarding for ${updatedUser.fullName}`);
     } catch (streamError) {
-      console.warn(
-        "Error updating Stream user during onboarding:",
-        streamError?.message || streamError,
-      );
+      console.warn("Error updating Stream user during onboarding:", streamError?.message || streamError);
     }
 
     res.status(200).json({ success: true, user: updatedUser });

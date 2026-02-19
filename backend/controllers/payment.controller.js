@@ -180,6 +180,8 @@ export const getProjectFundingStatus = async (req, res) => {
       data: {
         totalFunded,
         targetAmount: targetAmount,
+        /* The `progress` variable is calculating the percentage progress of the project funding based
+        on the total funded amount and the target amount of the project. */
         progress: targetAmount > 0 ? (totalFunded / targetAmount) * 100 : 0,
       },
     });

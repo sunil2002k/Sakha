@@ -30,7 +30,6 @@ const ProjectdetailPage = () => {
 
   const APIURL = import.meta.env.VITE_APP_URL;
 
-
   const fetchProjectDetail = async () => {
     try {
       const res = await axios.get(`${APIURL}/api/v1/projects/${id}`);
@@ -43,9 +42,7 @@ const ProjectdetailPage = () => {
       if (addedById) {
         try {
           const userRes = await axios.get(`${APIURL}/api/v1/users/${addedById}`);
-
           const userData = userRes.data?.data || userRes.data;
-
           setCreator(userData);
         } catch (uErr) {
           console.error("Failed to fetch creator info:", uErr);
@@ -127,15 +124,12 @@ const ProjectdetailPage = () => {
     }
   };
 
-  if (loading) return (
-    <PageLoader />
-  );
+  if (loading) return <PageLoader />;
 
   const isFunding = project.type === "funding";
 
   return (
     <div className="bg-base-100 text-base-content min-h-screen pb-20 transition-colors duration-300">
-
       {showCustomAmountInput && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
           <div className="bg-base-200 p-8 rounded-[2.5rem] shadow-2xl max-w-md w-full border border-base-300">
@@ -159,13 +153,12 @@ const ProjectdetailPage = () => {
       )}
 
       <div className="container mx-auto px-4 py-8 pt-24">
-        {/* Back Link */}
         <Link to="/projects" className="inline-flex items-center gap-2 text-sm font-black opacity-60 hover:opacity-100 hover:text-primary transition-all mb-8">
           <FaArrowLeft className="w-3 h-3" /> BACK TO DISCOVER
         </Link>
 
-        <div className="grid gap-12 lg:grid-cols-3">
-
+        <div className="grid gap-12 lg:grid-cols-3 items-start">
+          
           {/* LEFT: Project Content */}
           <div className="lg:col-span-2 space-y-8">
             <div className="relative aspect-video overflow-hidden rounded-[3rem] border border-base-300 shadow-xl bg-base-200">
@@ -187,11 +180,11 @@ const ProjectdetailPage = () => {
                 </div>
                 <div>
                   <div className="font-bold text-lg">{creator?.name || creator?.email || "Creator"}</div>
-                  {creator.isKYCverified ? (
-                    <span>Verified</span>
-                  ) : (
-                    <span> Not verified</span>
-                  )}
+                  <div className="flex items-center gap-2">
+                    <span className={`text-xs font-black uppercase tracking-widest ${creator?.isKYCverified ? 'text-success' : 'text-error'}`}>
+                      {creator?.isKYCverified ? "✓ Verified" : "Not verified"}
+                    </span>
+                  </div>
                   <div className="text-xs opacity-50 font-black uppercase tracking-widest">Innovation Lead</div>
                 </div>
               </div>
@@ -234,10 +227,7 @@ const ProjectdetailPage = () => {
                 <div className="space-y-6">
                   {project.updates && project.updates.length > 0 ? (
                     project.updates.map((update) => (
-                      <div
-                        key={update._id}
-                        className="bg-base-200 border border-base-300 rounded-2xl p-6"
-                      >
+                      <div key={update._id} className="bg-base-200 border border-base-300 rounded-2xl p-6">
                         <h4 className="text-xl font-black mb-2">{update.title}</h4>
                         <p className="opacity-80 leading-relaxed">{update.content}</p>
                         <p className="text-xs opacity-50 mt-3">
@@ -253,7 +243,7 @@ const ProjectdetailPage = () => {
                     <h3 className="text-2xl font-black mt-6 mb-4">Recent Backers</h3>
                     {fundedProjects && fundedProjects.length > 0 ? (
                       <div className="space-y-3">
-                        {fundedProjects.filter(fp => fp.status === "completed").map((fp) => (
+                        {fundedProjects.map((fp) => (
                           <div key={fp._id} className="bg-base-200 border border-base-300 rounded-2xl p-4 flex items-center justify-between">
                             <div>
                               <div className="font-black">{fp.fundedBy?.fullName || fp.fundedBy?.email || "Anonymous"}</div>
@@ -272,99 +262,100 @@ const ProjectdetailPage = () => {
                   </div>
                 </div>
               )}
-
             </div>
           </div>
 
-          {/* RIGHT: Sidebar Action Panel */}
-          <div className="space-y-6">
-            <div className="bg-base-200 rounded-[3rem] border border-base-300 p-10 shadow-2xl sticky top-24">
+          {/* RIGHT: Sidebar Action Panel - STICKY WRAPPER */}
+          <div className="lg:col-span-1">
+            <div className="sticky top-28 space-y-6">
+              
+              <div className="bg-base-200 rounded-[3rem] border border-base-300 p-10 shadow-2xl">
+                {isFunding ? (
+                  <div className="space-y-8">
+                    <div>
+                      <div className="text-5xl font-black text-primary tracking-tighter">
+                        NPR {parseInt(project.targetAmount || 0).toLocaleString()}
+                      </div>
+                      <p className="opacity-50 text-[10px] mt-2 font-black uppercase tracking-[0.2em]">Goal Amount</p>
+                    </div>
 
-              {isFunding ? (
-                <div className="space-y-8">
+                    <PaymentProgress
+                      projectId={project._id}
+                      targetAmount={project.targetAmount}
+                      APIURL={APIURL}
+                    />
+
+                    <div className="grid grid-cols-2 gap-4 border-t border-base-300 pt-8">
+                      <div>
+                        <div className="text-2xl font-black">412</div>
+                        <p className="text-[10px] opacity-50 font-black uppercase tracking-widest">Backers</p>
+                      </div>
+                      <div>
+                        <div className="text-2xl font-black">18</div>
+                        <p className="text-[10px] opacity-50 font-black uppercase tracking-widest">Days Left</p>
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={handlePayNow}
+                      disabled={paymentLoading}
+                      className="btn btn-primary btn-block btn-lg h-20 rounded-[1.5rem] shadow-xl text-lg font-black"
+                    >
+                      {paymentLoading ? "PROCESSING..." : "FUND THIS PROJECT"}
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                    <div className="badge badge-primary badge-outline font-black py-3 uppercase tracking-widest">Seeking Expertise</div>
+                    <h3 className="text-3xl font-black leading-tight">Join the team as a Mentor</h3>
+                    <p className="opacity-70 text-sm leading-relaxed font-medium">This creator is looking for specialized guidance to bring this vision to life.</p>
+
+                    <div className="pt-6 border-t border-base-300 flex items-center gap-4">
+                      <div className="h-12 w-12 bg-base-300 rounded-2xl flex items-center justify-center opacity-50 font-bold"><FaUsers /></div>
+                      <div>
+                        <div className="text-xl font-black">3 Slots</div>
+                        <div className="text-[10px] opacity-50 font-black uppercase tracking-widest">Available</div>
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={handleStartMentorship}
+                      className="btn btn-primary btn-block btn-lg h-20 rounded-[1.5rem] shadow-xl text-lg font-black"
+                    >
+                      START SESSION
+                    </button>
+                  </div>
+                )}
+
+                {/* Shared Actions */}
+                <div className="mt-8 pt-8 border-t border-base-300 flex gap-3">
+                  <button
+                    onClick={() => setIsSaved(!isSaved)}
+                    className="btn btn-outline flex-1 rounded-2xl border-base-300 text-[10px] font-black"
+                  >
+                    {isSaved ? <FaHeart className="text-error" /> : <FaRegHeart />} SAVE
+                  </button>
+                  <button className="btn btn-outline flex-1 rounded-2xl border-base-300 text-[10px] font-black">
+                    <FaShare /> SHARE
+                  </button>
+                </div>
+              </div>
+
+              {/* Social Proof Card */}
+              <div className="bg-base-200 rounded-[2rem] border border-base-300 p-8 shadow-sm">
+                <h4 className="font-black uppercase text-xs tracking-widest mb-4 opacity-50">Project Category</h4>
+                <div className="flex items-center gap-4">
+                  <div className="p-4 bg-primary/10 text-primary rounded-2xl">
+                    {isFunding ? <FaLightbulb size={24} /> : <FaHandsHelping size={24} />}
+                  </div>
                   <div>
-                    <div className="text-5xl font-black text-primary tracking-tighter">
-                      NPR {parseInt(project.targetAmount || 0).toLocaleString()}
-                    </div>
-                    <p className="opacity-50 text-[10px] mt-2 font-black uppercase tracking-[0.2em]">Goal Amount</p>
+                    <div className="font-black text-lg">{project.category || "General"}</div>
+                    <div className="text-xs opacity-50 font-medium">Verified Submission</div>
                   </div>
-
-                  <PaymentProgress
-                    projectId={project._id}
-                    targetAmount={project.targetAmount}
-                    APIURL={APIURL}
-                  />
-
-                  <div className="grid grid-cols-2 gap-4 border-t border-base-300 pt-8">
-                    <div>
-                      <div className="text-2xl font-black">412</div>
-                      <p className="text-[10px] opacity-50 font-black uppercase tracking-widest">Backers</p>
-                    </div>
-                    <div>
-                      <div className="text-2xl font-black">18</div>
-                      <p className="text-[10px] opacity-50 font-black uppercase tracking-widest">Days Left</p>
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={handlePayNow}
-                    disabled={paymentLoading}
-                    className="btn btn-primary btn-block btn-lg h-20 rounded-[1.5rem] shadow-xl text-lg font-black"
-                  >
-                    {paymentLoading ? "PROCESSING..." : "FUND THIS PROJECT"}
-                  </button>
-                </div>
-              ) : (
-                <div className="space-y-6">
-                  <div className="badge badge-primary badge-outline font-black py-3 uppercase tracking-widest">Seeking Expertise</div>
-                  <h3 className="text-3xl font-black leading-tight">Join the team as a Mentor</h3>
-                  <p className="opacity-70 text-sm leading-relaxed font-medium">This creator is looking for specialized guidance to bring this vision to life.</p>
-
-                  <div className="pt-6 border-t border-base-300 flex items-center gap-4">
-                    <div className="h-12 w-12 bg-base-300 rounded-2xl flex items-center justify-center opacity-50 font-bold"><FaUsers /></div>
-                    <div>
-                      <div className="text-xl font-black">3 Slots</div>
-                      <div className="text-[10px] opacity-50 font-black uppercase tracking-widest">Available</div>
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={handleStartMentorship}
-                    className="btn btn-primary btn-block btn-lg h-20 rounded-[1.5rem] shadow-xl text-lg font-black"
-                  >
-                    START SESSION
-                  </button>
-                </div>
-              )}
-
-              {/* Shared Actions */}
-              <div className="mt-8 pt-8 border-t border-base-300 flex gap-3">
-                <button
-                  onClick={() => setIsSaved(!isSaved)}
-                  className="btn btn-outline flex-1 rounded-2xl border-base-300 text-[10px] font-black"
-                >
-                  {isSaved ? <FaHeart className="text-error" /> : <FaRegHeart />} SAVE
-                </button>
-                <button className="btn btn-outline flex-1 rounded-2xl border-base-300 text-[10px] font-black">
-                  <FaShare /> SHARE
-                </button>
-              </div>
-            </div>
-
-            {/* Social Proof / Category Card */}
-            <div className="bg-base-200 rounded-[2rem] border border-base-300 p-8 shadow-sm">
-              <h4 className="font-black uppercase text-xs tracking-widest mb-4 opacity-50">Project Category</h4>
-              <div className="flex items-center gap-4">
-                <div className="p-4 bg-primary/10 text-primary rounded-2xl">
-                  {isFunding ? <FaLightbulb size={24} /> : <FaHandsHelping size={24} />}
-                </div>
-                <div>
-                  <div className="font-black text-lg">{project.category || "General"}</div>
-                  <div className="text-xs opacity-50 font-medium">Verified Submission</div>
                 </div>
               </div>
-            </div>
 
+            </div>
           </div>
         </div>
       </div>

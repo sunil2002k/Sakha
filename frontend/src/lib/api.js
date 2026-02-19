@@ -1,3 +1,4 @@
+
 import { axiosInstance } from "./axios";
 
 export const signup = async (signupData) => {
@@ -9,6 +10,7 @@ export const login = async (loginData) => {
   const response = await axiosInstance.post("/auth/sign-in", loginData);
   return response.data;
 };
+
 export const logout = async () => {
   const response = await axiosInstance.post("/auth/sign-out");
   return response.data;
@@ -24,8 +26,13 @@ export const getAuthUser = async () => {
   }
 };
 
-export const completeOnboarding = async (userData) => {
-  const response = await axiosInstance.post("/auth/onboarding", userData);
+// Must send as multipart/form-data so multer can handle the resume file on the backend
+export const completeOnboarding = async (formData) => {
+  const response = await axiosInstance.post("/auth/onboarding", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
   return response.data;
 };
 

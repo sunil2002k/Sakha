@@ -9,6 +9,7 @@ import {
   ArrowRight
 } from "lucide-react";
 import SkeletonCard from "./SkeletonCard";
+import SuccessPredictor from "./SuccessPredictor";
 
 const Home = () => {
   const [projects, setProjects] = useState([]);
@@ -83,7 +84,7 @@ const Home = () => {
             </Link>
           </div>
         </section>
-
+<SuccessPredictor/>
         {/* PLATFORM STATS */}
         <section className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {platformStats.map((stat, index) => {

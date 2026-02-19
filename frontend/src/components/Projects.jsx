@@ -264,7 +264,7 @@ const Projects = () => {
         {!loading && filteredProjects.length > 0 && (
           <div className="mt-20 text-center bg-primary text-primary-content p-12 rounded-[3rem] shadow-xl shadow-primary/20">
             <h2 className="text-3xl font-black mb-4 uppercase tracking-tighter">Have a brilliant idea?</h2>
-            <p className="opacity-80 font-medium mb-8 max-w-md mx-auto">Join the hundreds of creators who have launched their projects on Sakha.</p>
+            <p className="opacity-80 font-medium mb-8 max-w-md mx-auto">Join the hundreds of creators who have launched their projects on InnovateU.</p>
             <Link to="/submit" className="btn btn-neutral rounded-full px-12 border-none shadow-lg">
               Submit Your Project <TrendingUp className="size-4 ml-2" />
             </Link>

@@ -27,16 +27,15 @@ const OnboardingPage = () => {
       toast.success("Profile onboarded successfully");
       queryClient.invalidateQueries({ queryKey: ["authUser"] });
     },
-
     onError: (error) => {
-      toast.error(error.response.data.message);
+      toast.error(error.response?.data?.message || "Onboarding failed");
     },
   });
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    // Create FormData for file upload
+    // Build FormData so multer can parse the file on the backend
     const formData = new FormData();
     formData.append("fullName", formState.fullName);
     formData.append("bio", formState.bio);
@@ -44,28 +43,51 @@ const OnboardingPage = () => {
     formData.append("learningLanguage", formState.learningLanguage);
     formData.append("location", formState.location);
 
-    if (formState.resume && !formState.resume.startsWith("http")) {
-      if (formState.resumeFile) {
-        formData.append("resume", formState.resumeFile);
-      }
+    // Always send profilePic URL so the backend saves it
+    if (formState.profilePic) {
+      formData.append("profilePic", formState.profilePic);
+    }
+
+    // Attach resume file only if a new file was selected (mentor only)
+    if (formState.resumeFile) {
+      formData.append("resume", formState.resumeFile);
     }
 
     onboardingMutation(formData);
   };
 
-  const handleRandomAvatar = () => {
-    const idx = Math.floor(Math.random() * 100) + 1; // 1-100 included
-    const randomAvatar = `https://avatar.iran.liara.run/public/${idx}.png`;
-
-    setFormState({ ...formState, profilePic: randomAvatar });
-    toast.success("Random profile picture generated!");
-  };
+const handleRandomAvatar = () => {
+  // Using the 'adventurer' style, but they have many others like 'pixel-art' or 'lorelei'
+  const randomSeed = Math.random().toString(36).substring(7);
+  const randomAvatar = `https://api.dicebear.com/7.x/adventurer/svg?seed=${randomSeed}`;
+  
+  setFormState({ ...formState, profilePic: randomAvatar });
+  toast.success("Random profile picture generated!");
+};
 
   const handleResumeUpload = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Store the file object for FormData upload
+    // Validate file type
+    const allowedTypes = [
+      "application/pdf",
+      "application/msword",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    ];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error("Only PDF, DOC, or DOCX files are allowed");
+      e.target.value = "";
+      return;
+    }
+
+    // Validate file size (5 MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("File size must be less than 5 MB");
+      e.target.value = "";
+      return;
+    }
+
     setFormState({ ...formState, resumeFile: file, resume: file.name });
     toast.success("Resume selected successfully!");
   };
@@ -162,7 +184,9 @@ const OnboardingPage = () => {
                 <select
                   name="learningLanguage"
                   value={formState.learningLanguage}
-                  onChange={(e) => setFormState({ ...formState, learningLanguage: e.target.value })}
+                  onChange={(e) =>
+                    setFormState({ ...formState, learningLanguage: e.target.value })
+                  }
                   className="select select-bordered w-full"
                 >
                   <option value="">Select language you're learning</option>
@@ -193,7 +217,7 @@ const OnboardingPage = () => {
               </div>
             </div>
 
-            {/* RESUME UPLOAD - ONLY FOR MENTORS */}
+            {/* RESUME UPLOAD - MENTORS ONLY */}
             {authUser?.role === "mentor" && (
               <div className="form-control">
                 <label className="label">
@@ -206,18 +230,17 @@ const OnboardingPage = () => {
                   className="file-input file-input-bordered w-full"
                 />
                 <p className="text-xs opacity-70 mt-1">
-                  Upload your resume (PDF, DOC, DOCX)
+                  Upload your resume (PDF, DOC, DOCX — max 5 MB)
                 </p>
                 {formState.resume && (
                   <div className="mt-2 p-2 bg-success/10 rounded border border-success/30 text-success text-sm">
-                    ✓ Resume uploaded
+                    ✓ {formState.resumeFile ? formState.resume : "Resume already uploaded"}
                   </div>
                 )}
               </div>
             )}
 
             {/* SUBMIT BUTTON */}
-
             <button className="btn btn-primary w-full" disabled={isPending} type="submit">
               {!isPending ? (
                 <>
@@ -237,4 +260,5 @@ const OnboardingPage = () => {
     </div>
   );
 };
+
 export default OnboardingPage;

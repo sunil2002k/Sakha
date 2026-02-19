@@ -32,6 +32,9 @@ import useAuthUser from "./hooks/useAuthUser.js";
 import { useThemeStore } from "./store/useThemeStore.js";
 
 import { Toaster } from "react-hot-toast";
+import AdminAnalytics from "./components/Adminanalytics.jsx";
+import AdminUserMgmt from "./components/Adminusermgmt.jsx";
+import AdminTrxn from "./components/Admintrxn.jsx";
 
 
 const App = () => {
@@ -49,9 +52,9 @@ const App = () => {
 
   return (
     <div data-theme={theme}>
-       <ScrollToTop/>
+      <ScrollToTop />
       <Routes>
-          <Route path="/" element={<LayOut />}>
+        <Route path="/" element={<LayOut />}>
           <Route index element={<Home />} />
           <Route path="about" element={<About />} />
           <Route path="search" element={<Search />} />
@@ -105,11 +108,61 @@ const App = () => {
           }
         />
         <Route
+          path="/admin/analytics"
+          element={
+            isAuthenticated && isAdmin ? (
+              <Format showSidebar={true}>
+                <AdminAnalytics />
+              </Format>
+            ) : (
+              <Navigate to="/" replace />
+            )
+          }
+        />
+        <Route
+          path="/admin/users"
+          element={
+            isAuthenticated && isAdmin ? (
+              <Format showSidebar={true}>
+                <AdminUserMgmt />
+              </Format>
+            ) : (
+              <Navigate to="/" replace />
+            )
+          }
+        />
+        <Route
+          path="/admin/analytics"
+          element={
+            isAuthenticated && isAdmin ? (
+              <Format showSidebar={true}>
+                <AdminAnalytics />
+              </Format>
+            ) : (
+              <Navigate to="/" replace />
+            )
+          }
+        />
+        
+        <Route
+          path="/admin/transactions"
+          element={
+            isAuthenticated && isAdmin ? (
+              <Format showSidebar={true}>
+                <AdminTrxn />
+              </Format>
+            ) : (
+              <Navigate to="/" replace />
+            )
+          }
+        />
+
+        <Route
           path="/admin/kyc/:id"
           element={
             isAuthenticated && isAdmin ? (
               <Format showSidebar={true}>
-                <KYCDetails/>
+                <KYCDetails />
               </Format>
             ) : (
               <Navigate to="/" replace />

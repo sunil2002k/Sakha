@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
-// Accepts projectId, targetAmount, and APIURL as props
 const PaymentProgress = ({ projectId, targetAmount, APIURL }) => {
-    // State is initialized here
     const [fundingStatus, setFundingStatus] = useState({
         totalFunded: 0,
         targetAmount: targetAmount,
@@ -11,29 +9,24 @@ const PaymentProgress = ({ projectId, targetAmount, APIURL }) => {
     });
     const [loading, setLoading] = useState(true);
 
-    // Effect to fetch funding status when the component mounts or props change
     useEffect(() => {
-        // Only fetch if we have the necessary data
         if (!projectId || !APIURL) return;
 
         const fetchStatus = async () => {
             setLoading(true);
             try {
-                // ⚠️ Ensure this path matches your actual project routes in Express
                 const statusRes = await axios.get(
                     `${APIURL}/api/v1/payments/${projectId}/funding-status`
                 );
-                
-                const fetchedData = statusRes.data.data;
+                const fetchedData = statusRes.data.data || {};
                 setFundingStatus({
-                    totalFunded: fetchedData.totalFunded,
-                    targetAmount: fetchedData.targetAmount,
-                    progress: fetchedData.progress,
+                    totalFunded: fetchedData.totalFunded || 0,
+                    targetAmount: fetchedData.targetAmount || targetAmount,
+                    progress: typeof fetchedData.progress === 'number' ? fetchedData.progress : 0,
                 });
             } catch (sErr) {
-                console.error("Failed to fetch funding status:", sErr);
-                // Fallback to the target amount passed via props
-                setFundingStatus(prev => ({ ...prev, targetAmount: targetAmount }));
+                console.error('Failed to fetch funding status:', sErr);
+                setFundingStatus((prev) => ({ ...prev, targetAmount: targetAmount }));
             } finally {
                 setLoading(false);
             }
@@ -41,56 +34,79 @@ const PaymentProgress = ({ projectId, targetAmount, APIURL }) => {
 
         fetchStatus();
     }, [projectId, APIURL, targetAmount]);
-    
-    // Do not render if the project is not a funding type or has no target
-    if (targetAmount <= 0) return null;
-    
-    // Ensure progress is capped at 100%
-    const progressPercent = Math.min(fundingStatus.progress, 100);
+
+    if (!targetAmount || targetAmount <= 0) return null;
+
+    // FIX: Decouple the display value from the CSS width
+    const displayProgress = fundingStatus.progress || 0;
+    const barWidth = Math.min(displayProgress, 100);
 
     return (
-        <div className="bg-white/5 backdrop-blur-lg border border-white/10 rounded-2xl p-6">
-            <h3 className="text-xl font-bold text-white mb-4">
-                Fundraising Progress
-            </h3>
-            
+        <div className="bg-gradient-to-b from-white/5 to-white/2 border border-white/10 rounded-2xl p-6">
+            <div className="flex justify-between items-start mb-3">
+                <h3 className="text-lg font-bold text-white">Fundraising Progress</h3>
+                {displayProgress > 100 && (
+                    <span className="bg-emerald-500/20 text-emerald-400 text-xs px-2 py-1 rounded-full border border-emerald-500/30">
+                        Overfunded
+                    </span>
+                )}
+            </div>
+
             {loading ? (
-                 <p className="text-gray-400">Loading progress...</p>
+                <p className="text-sm text-gray-300">Loading progress...</p>
             ) : (
                 <>
-                    {/* Goal Display */}
-                    <p className="text-gray-400 text-sm mb-1">Funding Goal</p>
-                    <p className="text-2xl font-bold text-green-400 mb-4">
+                    <p className="text-sm text-gray-300 mb-1">Funding Goal</p>
+                    <p className="text-2xl font-extrabold text-white mb-4">
                         NPR {parseInt(targetAmount).toLocaleString()}
                     </p>
 
-                    {/* Progress Bar and Statistics */}
-                    <div className="mt-4">
-                        <p className="text-sm text-gray-400 mb-2">
-                            Raised: 
-                            <span className="text-green-300 font-semibold ml-1">
-                                NPR {fundingStatus.totalFunded.toLocaleString()}
-                            </span>
-                        </p>
-                        <div className="w-full bg-gray-700 rounded-full h-3">
+                    <div className="relative">
+                        <div
+                            className="w-full h-5 bg-white/6 rounded-full overflow-hidden shadow-inner relative"
+                            role="progressbar"
+                            aria-label={`Funding progress ${displayProgress.toFixed(1)} percent`}
+                            aria-valuenow={fundingStatus.totalFunded}
+                            aria-valuemin="0"
+                            aria-valuemax={fundingStatus.targetAmount}
+                        >
                             <div
-                                className="bg-green-500 h-3 rounded-full transition-all duration-1000"
-                                style={{ width: `${progressPercent}%` }}
-                                // Accessibility attributes
-                                aria-valuenow={fundingStatus.totalFunded}
-                                aria-valuemin="0"
-                                aria-valuemax={fundingStatus.targetAmount}
-                                role="progressbar"
-                            ></div>
+                                className={`h-full rounded-full bg-gradient-to-r transition-all duration-800 ease-out ${
+                                    displayProgress > 100 
+                                    ? 'from-emerald-400 to-emerald-600' 
+                                    : 'from-emerald-500 to-cyan-400'
+                                }`}
+                                style={{ width: `${barWidth}%` }}
+                            />
+
+                            {/* Show actual percentage inside bar if there is space */}
+                            {displayProgress >= 15 && (
+                                <span className="absolute left-3 top-0 h-full flex items-center text-sm font-semibold text-white">
+                                    {displayProgress.toFixed(1)}%
+                                </span>
+                            )}
                         </div>
-                        <p className="text-xs text-gray-400 mt-1">
-                            {progressPercent.toFixed(1)}% Complete
-                        </p>
+
+                        <div className="flex justify-between items-center mt-3">
+                            <div className="text-sm text-gray-300">
+                                <span className="font-medium">Raised</span>
+                                <span className="ml-1 font-semibold text-white">
+                                    NPR {fundingStatus.totalFunded.toLocaleString()}
+                                </span>
+                            </div>
+                            
+                            {/* Show percentage outside if it's too small to fit inside the bar */}
+                            {displayProgress < 15 && (
+                                <div className="text-sm text-gray-300 font-bold">
+                                    {displayProgress.toFixed(1)}%
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </>
             )}
         </div>
     );
-}
+};
 
 export default PaymentProgress;
