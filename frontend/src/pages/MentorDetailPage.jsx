@@ -66,8 +66,6 @@ const MentorDetailPage = () => {
     const friendRequestSent = outgoingReqs?.some((req) => req.recipient?._id === mentor._id);
     const isOwnProfile = authUser?._id === mentor._id;
 
-    // Helper to get signed URL from backend.
-    // Returns { url, filename } so the frontend can name the saved file properly.
     const getSignedDownloadUrl = async (originalUrl, isDownload = false) => {
         try {
             if (!originalUrl) throw new Error("URL is required");

@@ -66,7 +66,6 @@ const projectSchema = new mongoose.Schema({
     default: Date.now,
   },
 
-  // ── NEW: Admin review fields ──────────────────────────────
   adminStatus: {
     type: String,
     enum: ["pending", "approved", "rejected"],

@@ -18,6 +18,10 @@ import toast from "react-hot-toast";
 
 import ChatLoader from "../components/ChatLoader";
 import CallButton from "../components/CallButton";
+import { MessageSquare, WifiOff } from "lucide-react";
+
+// Stream base styles — layout + theme overrides are in index.css
+import "stream-chat-react/dist/css/v2/index.css";
 
 const STREAM_API_KEY = import.meta.env.VITE_STREAM_API_KEY;
 
@@ -27,13 +31,14 @@ const ChatPage = () => {
   const [chatClient, setChatClient] = useState(null);
   const [channel, setChannel] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   const { authUser } = useAuthUser();
 
   const { data: tokenData } = useQuery({
     queryKey: ["streamToken"],
     queryFn: getStreamToken,
-    enabled: !!authUser, // this will run only when authUser is available
+    enabled: !!authUser,
   });
 
   useEffect(() => {
@@ -41,8 +46,6 @@ const ChatPage = () => {
       if (!tokenData?.token || !authUser) return;
 
       try {
-        console.log("Initializing stream chat client...");
-
         const client = StreamChat.getInstance(STREAM_API_KEY);
 
         await client.connectUser(
@@ -54,13 +57,7 @@ const ChatPage = () => {
           tokenData.token
         );
 
-        //
         const channelId = [authUser._id, targetUserId].sort().join("-");
-
-        // you and me
-        // if i start the chat => channelId: [myId, yourId]
-        // if you start the chat => channelId: [yourId, myId]  => [myId,yourId]
-
         const currChannel = client.channel("messaging", channelId, {
           members: [authUser._id, targetUserId],
         });
@@ -69,8 +66,9 @@ const ChatPage = () => {
 
         setChatClient(client);
         setChannel(currChannel);
-      } catch (error) {
-        console.error("Error initializing chat:", error);
+      } catch (err) {
+        console.error("Error initializing chat:", err);
+        setError(true);
         toast.error("Could not connect to chat. Please try again.");
       } finally {
         setLoading(false);
@@ -83,33 +81,74 @@ const ChatPage = () => {
   const handleVideoCall = () => {
     if (channel) {
       const callUrl = `${window.location.origin}/call/${channel.id}`;
-
       channel.sendMessage({
         text: `I've started a video call. Join me here: ${callUrl}`,
       });
-
-      toast.success("Video call link sent successfully!");
+      toast.success("Video call link sent!");
     }
   };
 
-  if (loading || !chatClient || !channel) return <ChatLoader />;
+  if (loading || (!chatClient && !error)) return <ChatLoader />;
 
-  return (
-    <div className="h-[93vh]">
+  if (error || !chatClient || !channel) {
+    return (
+      <div className="h-[93vh] flex items-center justify-center bg-base-100 px-4">
+        <div className="card bg-base-200 border border-base-300 w-full max-w-sm">
+          <div className="card-body p-8 text-center gap-5">
+            <div className="p-4 rounded-2xl bg-error/10 w-fit mx-auto">
+              <WifiOff className="w-8 h-8 text-error" />
+            </div>
+            <div className="space-y-1.5">
+              <h3 className="font-bold text-lg">Connection Failed</h3>
+              <p className="text-base-content/55 text-sm">
+                Could not connect to chat. Check your connection and try again.
+              </p>
+            </div>
+            <button
+              onClick={() => window.location.reload()}
+              className="btn btn-primary rounded-xl"
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+return (
+  <div className="h-[93vh] flex flex-col overflow-hidden bg-base-100">
+
+    <div className="flex-1 min-h-0 overflow-hidden">
       <Chat client={chatClient}>
         <Channel channel={channel}>
-          <div className="w-full relative">
-            <CallButton handleVideoCall={handleVideoCall} />
+          <div className="flex h-full w-full overflow-hidden">
+            
             <Window>
-              <ChannelHeader />
+              
+              {/* Custom Header */}
+              <div className="flex items-center justify-between px-5 py-3 border-b border-base-300 bg-base-100">
+                
+                {/* Channel Name */}
+                <ChannelHeader />
+
+                {/* Video Call Icon - Right Most */}
+                <CallButton handleVideoCall={handleVideoCall} />
+                
+              </div>
+
               <MessageList />
               <MessageInput focus />
             </Window>
+
+            <Thread />
           </div>
-          <Thread />
         </Channel>
       </Chat>
     </div>
-  );
+
+  </div>
+);
 };
+
 export default ChatPage;

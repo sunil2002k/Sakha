@@ -71,9 +71,11 @@ export const create_project = async (req, res) => {
 // show list (populate addedBy)
 export const show_project = async (req, res) => {
   try {
-    const projects = await Project.find()
+    // Added filter: adminStatus: "approved"
+    const projects = await Project.find({ adminStatus: "approved" })
       .sort({ createdAt: -1 })
       .populate("addedBy", "fullName email");
+      
     return res.status(200).json({ message: "success", projects });
   } catch (error) {
     console.error("Error fetching projects:", error);
@@ -82,7 +84,6 @@ export const show_project = async (req, res) => {
       .json({ message: "Server error", error: error.message });
   }
 };
-
 // get single project by id (populate addedBy)
 export const getProjectById = async (req, res) => {
   try {

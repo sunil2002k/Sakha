@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { axiosInstance } from "../lib/axios";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import ProjectManager from "../components/ProjectManager";
 
 const StatCard = ({ label, value, loading, icon, badgeClass }) => (
   <div className="card bg-base-200 border border-base-300 shadow-sm hover:shadow-md transition-shadow">
@@ -314,7 +315,7 @@ const AdminDashboard = () => {
             )}
           </div>
         </div>
-
+<ProjectManager/>
       </div>
     </div>
   );

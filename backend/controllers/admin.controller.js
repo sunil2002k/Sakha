@@ -4,9 +4,6 @@ import FundedProject from "../models/fundedProject.model.js";
 import { KYCModel } from "../models/kyc.model.js";
 import { sendEmail } from "../utils/email.service.js";
 
-// ─────────────────────────────────────────────────────────────
-// STATS  GET /api/v1/admin/stats
-// ─────────────────────────────────────────────────────────────
 export const getAdminStats = async (req, res) => {
   try {
     const [userCount, projectCount, kycPending, totalFundingResult] = await Promise.all([
@@ -32,9 +29,7 @@ export const getAdminStats = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────
-// ANALYTICS  GET /api/v1/admin/analytics
-// ─────────────────────────────────────────────────────────────
+
 export const getAnalytics = async (req, res) => {
   try {
     const now = new Date();
@@ -106,9 +101,7 @@ export const getAnalytics = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────
-// ALL USERS  GET /api/v1/admin/users
-// ─────────────────────────────────────────────────────────────
+
 export const getAllUsers = async (req, res) => {
   try {
     // User model has select:false on password, so no need to explicitly exclude
@@ -120,10 +113,7 @@ export const getAllUsers = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────
-// BAN / UNBAN  PUT /api/v1/admin/users/:id/ban
-// body: { banned: true | false }
-// ─────────────────────────────────────────────────────────────
+
 export const updateUserBanStatus = async (req, res) => {
   try {
     const { id } = req.params;
@@ -162,17 +152,12 @@ export const updateUserBanStatus = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────
-// CHANGE ROLE  PUT /api/v1/admin/users/:id/role
-// body: { role: "student" | "mentor" | "admin" }
-// Matches your User model enum: ["student", "mentor", "admin"]
-// ─────────────────────────────────────────────────────────────
+
 export const updateUserRole = async (req, res) => {
   try {
     const { id } = req.params;
     const { role } = req.body;
 
-    // Matches the enum in your user.model.js exactly
     const allowedRoles = ["student", "mentor", "admin"];
     if (!allowedRoles.includes(role)) {
       return res.status(400).json({ message: `Role must be one of: ${allowedRoles.join(", ")}` });
@@ -188,9 +173,7 @@ export const updateUserRole = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────
-// ALL PROJECTS  GET /api/v1/admin/projects
-// ─────────────────────────────────────────────────────────────
+
 export const getAllProjects = async (req, res) => {
   try {
     const projects = await Project.find()
@@ -234,10 +217,7 @@ export const getAllProjects = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────
-// APPROVE PROJECT  PUT /api/v1/admin/projects/:id/approve
-// body: { note?: string }
-// ─────────────────────────────────────────────────────────────
+
 export const approveProject = async (req, res) => {
   try {
     const project = await Project.findById(req.params.id).populate("addedBy", "email fullName");
@@ -264,10 +244,7 @@ export const approveProject = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────
-// REJECT PROJECT  PUT /api/v1/admin/projects/:id/reject
-// body: { note: string }
-// ─────────────────────────────────────────────────────────────
+
 export const rejectProject = async (req, res) => {
   try {
     const { note } = req.body;
@@ -295,9 +272,7 @@ export const rejectProject = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────
-// FLAG / UNFLAG  PUT /api/v1/admin/projects/:id/flag
-// ─────────────────────────────────────────────────────────────
+
 export const flagProject = async (req, res) => {
   try {
     const project = await Project.findById(req.params.id);
@@ -317,10 +292,7 @@ export const flagProject = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────
-// ALL TRANSACTIONS  GET /api/v1/admin/transactions
-// Reads from FundedProject — your actual payment records model
-// ─────────────────────────────────────────────────────────────
+
 export const getAllTransactions = async (req, res) => {
   try {
     const records = await FundedProject.find()
@@ -344,10 +316,7 @@ export const getAllTransactions = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────
-// ISSUE REFUND  PUT /api/v1/admin/transactions/:id/refund
-// id = FundedProject._id
-// ─────────────────────────────────────────────────────────────
+
 export const issueRefund = async (req, res) => {
   try {
     const record = await FundedProject.findById(req.params.id)

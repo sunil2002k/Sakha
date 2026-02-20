@@ -139,8 +139,8 @@ const Navbar = ({ hideLogo }) => {
                   to={link.path}
                   className={({ isActive }) =>
                     `text-xs md:text-sm px-3 py-1 rounded-full font-medium tracking-wide transition-all duration-200 ${isActive
-                      ? "bg-primary/30 text-primary-content border border-primary/60 shadow-[0_0_12px_rgba(168,85,247,0.7)]"
-                      : "text-base-content/85 hover:bg-base-200/7 hover:text-primary border border-transparent"
+                      ? " text-primary "
+                      : "text-base-content/85 hover:bg-base-200/7 hover:text-primary border-transparent"
                     }`
                   }
                 >
@@ -338,9 +338,9 @@ const Navbar = ({ hideLogo }) => {
                 to={link.path}
                 onClick={() => setIsOpen(false)}
                 className={({ isActive }) =>
-                  `mt-1 rounded-lg px-3 py-2 text-sm font-medium transition-all ${isActive
-                    ? "bg-primary/25 text-primary-content border border-primary/60 shadow-[0_0_12px_rgba(168,85,247,0.7)]"
-                    : "text-base-content/90 border border-transparent hover:bg-base-200/5 hover:text-primary"
+                  `mt-1  px-3 py-2 text-sm font-medium transition-all ${isActive
+                    ? " text-primary-content"
+                    : "text-base-content/90  hover:bg-base-200/5 hover:text-primary"
                   }`
                 }
               >
