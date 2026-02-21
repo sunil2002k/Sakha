@@ -24,7 +24,7 @@ const Footer = () => {
                 <FaRocket className="text-2xl" />
               </div>
               <span className="text-2xl font-black tracking-tighter">
-                ProjectHub<span className="text-primary">.</span>
+                InnovateU<span className="text-primary">.</span>
               </span>
             </Link>
             <p className="opacity-70 leading-relaxed mb-6 max-w-xs font-medium">
@@ -87,7 +87,7 @@ const Footer = () => {
 
         {/* Bottom Section: Copyright & Legal */}
         <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm font-bold opacity-50">
-          <p>© {new Date().getFullYear()} ProjectHub Inc. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} InnovateU Inc. All rights reserved.</p>
           <div className="flex gap-8">
             <Link to="/privacy" className="hover:text-primary transition-colors">Privacy Policy</Link>
             <Link to="/terms" className="hover:text-primary transition-colors">Terms of Service</Link>

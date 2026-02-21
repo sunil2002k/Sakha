@@ -30,9 +30,7 @@ const ImageViewer = ({ src, label, tag }) => {
     <>
       <div className="card bg-base-300 border border-base-300 overflow-hidden">
         <div className="flex items-center justify-between px-4 py-3 border-b border-base-content/10">
-          <div className="flex items-center gap-2">
-            <span className="text-base-content/40 text-xs font-mono uppercase tracking-widest">{tag}</span>
-          </div>
+          <span className="text-base-content/40 text-xs font-mono uppercase tracking-widest">{tag}</span>
           <button
             onClick={() => setZoomed(true)}
             className="btn btn-xs btn-ghost gap-1 text-base-content/50 hover:text-base-content"
@@ -51,7 +49,6 @@ const ImageViewer = ({ src, label, tag }) => {
         </div>
       </div>
 
-      {/* Zoom Modal */}
       {zoomed && (
         <dialog className="modal modal-open">
           <div className="modal-box max-w-3xl p-2 bg-base-300">
@@ -133,11 +130,18 @@ const KYCDetails = () => {
 
   const isPending = kyc.status === "pending";
 
+  // ── submittedBy is now a populated object ──
+  const submitter = kyc.submittedBy;
+  const submitterName = submitter?.fullName || "—";
+  const submitterEmail = submitter?.email || "—";
+  const submitterId = submitter?._id || "—";
+  const submitterPic = submitter?.profilePic || null;
+
   return (
     <div className="min-h-screen bg-base-100 pt-20 px-4 pb-16">
       <div className="max-w-5xl mx-auto">
 
-        {/* Breadcrumb + Back */}
+        {/* Breadcrumb */}
         <div className="flex items-center gap-2 mb-6 text-xs font-mono text-base-content/40">
           <button onClick={() => navigate("/admin/dashboard")} className="hover:text-primary transition-colors flex items-center gap-1">
             <svg xmlns="http://www.w3.org/2000/svg" className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -167,7 +171,7 @@ const KYCDetails = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
 
-          {/* LEFT: Info + Actions */}
+          {/* LEFT */}
           <div className="lg:col-span-2 flex flex-col gap-6">
 
             {/* Applicant Info */}
@@ -180,19 +184,44 @@ const KYCDetails = () => {
                   </h3>
                 </div>
                 <div className="px-5 py-4 flex flex-col gap-5">
-                  <InfoRow label="Full Name" value={kyc.fullName} />
-                  <InfoRow label="Date of Birth" value={new Date(kyc.dob).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })} />
+
+                  {/* Submitter profile row */}
+                  <div className="flex items-center gap-3 p-3 rounded-xl bg-base-300/50 border border-base-300">
+                    <div className="w-10 h-10 rounded-xl overflow-hidden ring-1 ring-base-300 shrink-0">
+                      {submitterPic ? (
+                        <img src={submitterPic} alt={submitterName} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full bg-primary/10 flex items-center justify-center">
+                          <span className="text-xs font-bold text-primary">{submitterName.charAt(0)}</span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-bold truncate">{submitterName}</p>
+                      <p className="text-xs text-base-content/45 font-mono truncate">{submitterEmail}</p>
+                    </div>
+                  </div>
+
+                  <InfoRow label="Full Name (on ID)" value={kyc.fullName} />
+                  <InfoRow
+                    label="Date of Birth"
+                    value={new Date(kyc.dob).toLocaleDateString("en-US", {
+                      year: "numeric", month: "long", day: "numeric",
+                    })}
+                  />
                   <InfoRow label="Address" value={kyc.address} />
-                  <InfoRow label="User ID" value={kyc.submittedBy} />
+                  <InfoRow label="User ID" value={submitterId} />
                   <InfoRow
                     label="Submitted"
-                    value={new Date(kyc.submittedAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
+                    value={new Date(kyc.submittedAt).toLocaleDateString("en-US", {
+                      year: "numeric", month: "short", day: "numeric",
+                    })}
                   />
                 </div>
               </div>
             </div>
 
-            {/* Status Banner if already reviewed */}
+            {/* Already reviewed banner */}
             {!isPending && (
               <div className={`alert ${kyc.status === "verified" ? "alert-success" : "alert-error"} shadow`}>
                 <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -266,7 +295,6 @@ const KYCDetails = () => {
               </div>
             )}
 
-            {/* Back button */}
             <button
               onClick={() => navigate("/admin/dashboard")}
               className="btn btn-ghost btn-sm gap-2 self-start text-base-content/40 hover:text-base-content"

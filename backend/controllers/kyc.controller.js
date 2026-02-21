@@ -78,7 +78,9 @@ export const submitKYC = async (req, res) => {
 
 export const show_KYC = async (req, res) => {
   try {
-    const records = await KYCModel.find().sort({ submittedAt: -1 });
+    const records = await KYCModel.find()
+  .populate("submittedBy", "fullName email profilePic")
+  .sort({ submittedAt: -1 });
     res.json(records);
   } catch (error) {
     res.status(500).json({ error: error.message });

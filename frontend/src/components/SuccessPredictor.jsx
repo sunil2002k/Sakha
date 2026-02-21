@@ -93,7 +93,7 @@ const SuccessPredictor = () => {
   const probNum = parseFloat(result?.probability) * 100 || 0;
 
   return (
-    <div className="fixed bottom-2 right-6 z-50 flex flex-col items-end gap-3">
+    <div className="fixed -bottom-16 right-6 z-50 flex flex-col items-end gap-3">
 
       {/* CHAT WINDOW */}
       {isOpen && (

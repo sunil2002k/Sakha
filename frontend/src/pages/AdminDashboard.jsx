@@ -106,60 +106,18 @@ const AdminDashboard = () => {
 
         {/* Stat Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
-          <StatCard
-            label="Total Users"
-            value={stats.userCount}
-            loading={loading}
-            icon="👥"
-            badgeClass="badge-primary badge-outline"
-          />
-          <StatCard
-            label="Total Projects"
-            value={stats.projectCount}
-            loading={loading}
-            icon="🗂️"
-            badgeClass="badge-secondary badge-outline"
-          />
-          <StatCard
-            label="Pending KYC"
-            value={stats.kycPending}
-            loading={loading}
-            icon="⏳"
-            badgeClass="badge-warning badge-outline"
-          />
-          <StatCard
-            label="Total Funded"
-            value={`NPR ${(stats.totalFunded || 0).toLocaleString()}`}
-            loading={loading}
-            icon="💰"
-            badgeClass="badge-success badge-outline"
-          />
+          <StatCard label="Total Users" value={stats.userCount} loading={loading} icon="👥" badgeClass="badge-primary badge-outline" />
+          <StatCard label="Total Projects" value={stats.projectCount} loading={loading} icon="🗂️" badgeClass="badge-secondary badge-outline" />
+          <StatCard label="Pending KYC" value={stats.kycPending} loading={loading} icon="⏳" badgeClass="badge-warning badge-outline" />
+          <StatCard label="Total Funded" value={`NPR ${(stats.totalFunded || 0).toLocaleString()}`} loading={loading} icon="💰" badgeClass="badge-success badge-outline" />
         </div>
 
         {/* Quick action cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
           {[
-            {
-              title: "User Management",
-              desc: "Ban, unban, and change roles",
-              path: "/admin/users",
-              accent: "border-primary/30 hover:border-primary",
-              badge: "badge-primary",
-            },
-            {
-              title: "Analytics",
-              desc: "Signups, projects, and funding charts",
-              path: "/admin/analytics",
-              accent: "border-secondary/30 hover:border-secondary",
-              badge: "badge-secondary",
-            },
-            {
-              title: "Transactions",
-              desc: "Funding records and refund management",
-              path: "/admin/transactions",
-              accent: "border-success/30 hover:border-success",
-              badge: "badge-success",
-            },
+            { title: "User Management", desc: "Ban, unban, and change roles", path: "/admin/users", accent: "border-primary/30 hover:border-primary", badge: "badge-primary" },
+            { title: "Analytics", desc: "Signups, projects, and funding charts", path: "/admin/analytics", accent: "border-secondary/30 hover:border-secondary", badge: "badge-secondary" },
+            { title: "Transactions", desc: "Funding records and refund management", path: "/admin/transactions", accent: "border-success/30 hover:border-success", badge: "badge-success" },
           ].map((item) => (
             <button
               key={item.title}
@@ -185,9 +143,7 @@ const AdminDashboard = () => {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-6 pt-6 pb-4 border-b border-base-300">
               <div>
                 <h2 className="text-xl font-bold">Identity Verifications</h2>
-                <p className="text-base-content/40 text-xs font-mono mt-0.5">
-                  {counts.all} total submissions
-                </p>
+                <p className="text-base-content/40 text-xs font-mono mt-0.5">{counts.all} total submissions</p>
               </div>
               <div role="tablist" className="tabs tabs-boxed bg-base-300 p-1">
                 {[
@@ -203,11 +159,10 @@ const AdminDashboard = () => {
                     className={`tab text-xs font-semibold gap-1.5 transition-all ${filter === key ? "tab-active" : "text-base-content/50"}`}
                   >
                     {label}
-                    <span className={`badge badge-xs font-mono ${
-                      key === "pending" ? "badge-warning" :
-                      key === "verified" ? "badge-success" :
-                      key === "rejected" ? "badge-error" : "badge-neutral"
-                    } ${filter !== key ? "opacity-40" : ""}`}>
+                    <span className={`badge badge-xs font-mono ${key === "pending" ? "badge-warning" :
+                        key === "verified" ? "badge-success" :
+                          key === "rejected" ? "badge-error" : "badge-neutral"
+                      } ${filter !== key ? "opacity-40" : ""}`}>
                       {counts[key]}
                     </span>
                   </button>
@@ -240,55 +195,66 @@ const AdminDashboard = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredKyc.map((k, i) => (
-                      <tr key={k._id} className="hover">
-                        <td className="text-base-content/30 font-mono text-xs w-10">
-                          {String(i + 1).padStart(2, "0")}
-                        </td>
-                        <td>
-                          <div className="flex items-center gap-3">
-                            <div className="avatar placeholder">
-                              <div className="bg-neutral text-neutral-content rounded-full w-9 h-9">
-                                <span className="text-xs font-bold">
-                                  {k.fullName?.charAt(0)?.toUpperCase() || "?"}
-                                </span>
+                    {filteredKyc.map((k, i) => {
+                      const profilePic = k.submittedBy?.profilePic || null;  // ✅
+                      const initials = k.fullName?.charAt(0)?.toUpperCase() || "?";
+
+                      return (
+                        <tr key={k._id} className="hover">
+                          <td className="text-base-content/30 font-mono text-xs w-10">
+                            {String(i + 1).padStart(2, "0")}
+                          </td>
+
+                          <td>
+                            <div className="flex items-center gap-3">
+                              <div className="avatar shrink-0">
+                                <div className="w-9 h-9 rounded-full overflow-hidden ring-1 ring-base-300">
+                                  {profilePic ? (
+                                    <img src={profilePic} alt={k.fullName} className="w-full h-full object-cover" />
+                                  ) : (
+                                    <div className="w-full h-full bg-primary/10 flex items-center justify-center">
+                                      <span className="text-xs font-bold text-primary">{initials}</span>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                              <div>
+                                <p className="font-semibold text-sm leading-tight">{k.fullName}</p>
+                                <p className="text-base-content/40 text-xs font-mono">{k.submittedBy?.email}</p>  {/* ✅ .email not the whole object */}
                               </div>
                             </div>
-                            <div>
-                              <p className="font-semibold text-sm leading-tight">{k.fullName}</p>
-                              <p className="text-base-content/40 text-xs font-mono">{k.submittedBy}</p>
+                          </td>
+
+                          <td>
+                            <div className="mask mask-squircle w-10 h-10 bg-base-300 overflow-hidden">
+                              <img src={k.idCardUrl} alt="ID" className="w-full h-full object-cover" />
                             </div>
-                          </div>
-                        </td>
-                        <td>
-                          <div className="mask mask-squircle w-10 h-10 bg-base-300 overflow-hidden">
-                            <img src={k.idCardUrl} alt="ID" className="w-full h-full object-cover" />
-                          </div>
-                        </td>
-                        <td>
-                          <div className="mask mask-squircle w-10 h-10 bg-base-300 overflow-hidden">
-                            <img src={k.selfieUrl} alt="Selfie" className="w-full h-full object-cover" />
-                          </div>
-                        </td>
-                        <td className="font-mono text-xs text-base-content/50">
-                          {new Date(k.submittedAt).toLocaleDateString("en-US", {
-                            month: "short", day: "numeric", year: "numeric",
-                          })}
-                        </td>
-                        <td>{statusBadge(k.status)}</td>
-                        <td>
-                          <button
-                            onClick={() => navigate(`/admin/kyc/${k._id}`)}
-                            className="btn btn-xs btn-outline btn-primary gap-1"
-                          >
-                            Review
-                            <svg xmlns="http://www.w3.org/2000/svg" className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                            </svg>
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
+                          </td>
+                          <td>
+                            <div className="mask mask-squircle w-10 h-10 bg-base-300 overflow-hidden">
+                              <img src={k.selfieUrl} alt="Selfie" className="w-full h-full object-cover" />
+                            </div>
+                          </td>
+                          <td className="font-mono text-xs text-base-content/50">
+                            {new Date(k.submittedAt).toLocaleDateString("en-US", {
+                              month: "short", day: "numeric", year: "numeric",
+                            })}
+                          </td>
+                          <td>{statusBadge(k.status)}</td>
+                          <td>
+                            <button
+                              onClick={() => navigate(`/admin/kyc/${k._id}`)}
+                              className="btn btn-xs btn-outline btn-primary gap-1"
+                            >
+                              Review
+                              <svg xmlns="http://www.w3.org/2000/svg" className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                              </svg>
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -315,7 +281,8 @@ const AdminDashboard = () => {
             )}
           </div>
         </div>
-<ProjectManager/>
+
+        <ProjectManager />
       </div>
     </div>
   );

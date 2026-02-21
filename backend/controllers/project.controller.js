@@ -118,6 +118,7 @@ export const searchProjects = async (req, res) => {
     }
 
     const results = await Project.find({
+      adminStatus: "approved", 
       $or: [
         { title: { $regex: query, $options: "i" } },
         { description: { $regex: query, $options: "i" } },
@@ -135,7 +136,7 @@ export const searchProjects = async (req, res) => {
 
 export const getMyProjects = async (req, res) => {
   try {
-    const userId = req.user.id; // Assumes your auth middleware attaches user to req
+    const userId = req.user.id; 
     const projects = await Project.find({ addedBy: userId }).sort({
       createdAt: -1,
     });

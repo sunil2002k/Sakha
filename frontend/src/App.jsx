@@ -15,9 +15,9 @@ import KYCFormPage from "./pages/KYCFormPage.jsx";
 import FriendsPage from "./pages/FriendsPage.jsx";
 import MentorDetailPage from "./pages/MentorDetailPage.jsx";
 import MyProjectPage from "./pages/MyProjectPage.jsx";
+import ProjectSubmitPage from "./pages/ProjectSubmitPage.jsx";
 
 import Home from "./components/Home.jsx";
-import IdeaAnalyzer from "./components/IdeaAnalyzer.jsx";
 import About from "./components/About.jsx";
 import Search from "./components/Search.jsx";
 import Projects from "./components/Projects.jsx";
@@ -64,12 +64,33 @@ const App = () => {
           <Route path="mentor/:id" element={<MentorDetailPage />} />
           <Route path="submit" element={
             isAuthenticated && isOnboarded ? (
-              <IdeaAnalyzer />
+              <ProjectSubmitPage />
             ) : (
               <Navigate to={redirectForProtected} replace />
             )
           }
           />
+           <Route
+          path="/profile"
+          element={
+            isAuthenticated && isOnboarded ? (
+              <ProfilePage />
+            ) : (
+              <Navigate to={redirectForProtected} replace />
+            )
+          }
+        />
+
+        <Route
+          path="/myprojects"
+          element={
+            isAuthenticated && isOnboarded ? (
+              <MyProjectPage />
+            ) : (
+              <Navigate to={redirectForProtected} replace />
+            )
+          }
+        />
 
           {/* Auth routes */}
           <Route
@@ -198,27 +219,7 @@ const App = () => {
         />
 
 
-        <Route
-          path="/profile"
-          element={
-            isAuthenticated && isOnboarded ? (
-              <ProfilePage />
-            ) : (
-              <Navigate to={redirectForProtected} replace />
-            )
-          }
-        />
-
-        <Route
-          path="/myprojects"
-          element={
-            isAuthenticated && isOnboarded ? (
-              <MyProjectPage />
-            ) : (
-              <Navigate to={redirectForProtected} replace />
-            )
-          }
-        />
+       
 
         <Route
           path="/chatroom"
