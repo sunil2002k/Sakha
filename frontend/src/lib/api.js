@@ -3,17 +3,29 @@ import { axiosInstance } from "./axios";
 
 export const signup = async (signupData) => {
   const response = await axiosInstance.post("/auth/sign-up", signupData);
+  if (!response.data.token) {
+    throw new Error("Signup response did not include an authentication token");
+  }
+  localStorage.setItem("token", response.data.token);
   return response.data;
 };
 
 export const login = async (loginData) => {
   const response = await axiosInstance.post("/auth/sign-in", loginData);
+  if (!response.data.token) {
+    throw new Error("Login response did not include an authentication token");
+  }
+  localStorage.setItem("token", response.data.token);
   return response.data;
 };
 
 export const logout = async () => {
-  const response = await axiosInstance.post("/auth/sign-out");
-  return response.data;
+  try {
+    const response = await axiosInstance.post("/auth/sign-out");
+    return response.data;
+  } finally {
+    localStorage.removeItem("token");
+  }
 };
 
 export const getAuthUser = async () => {

@@ -274,7 +274,7 @@ const ProjectdetailPage = () => {
                   <div className="space-y-8">
                     <div>
                       <div className="text-5xl font-black text-primary tracking-tighter">
-                        NPR {parseInt(project.targetAmount || 0).toLocaleString()}
+                        NPR {parseInt(project.targetAmount || 0).toLocaleString()} 
                       </div>
                       <p className="opacity-50 text-[10px] mt-2 font-black uppercase tracking-[0.2em]">Goal Amount</p>
                     </div>
@@ -287,7 +287,8 @@ const ProjectdetailPage = () => {
 
                     <div className="grid grid-cols-2 gap-4 border-t border-base-300 pt-8">
                       <div>
-                        <div className="text-2xl font-black">412</div>
+                        {/* todo: dynamic backers number to show */}
+                        <div className="text-2xl font-black">6</div>
                         <p className="text-[10px] opacity-50 font-black uppercase tracking-widest">Backers</p>
                       </div>
                       <div>

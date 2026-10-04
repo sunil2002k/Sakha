@@ -80,6 +80,18 @@ const App = () => {
             )
           }
         />
+          <Route
+          path="/kyc"
+          element={
+            isAuthenticated && isOnboarded ? (
+              <Format showSidebar={false}>
+                <KYCFormPage />
+              </Format>
+            ) : (
+              <Navigate to={redirectForProtected} replace />
+            )
+          }
+        />
 
         <Route
           path="/myprojects"
@@ -192,18 +204,7 @@ const App = () => {
         />
 
 
-        <Route
-          path="/kyc"
-          element={
-            isAuthenticated && isOnboarded ? (
-              <Format showSidebar={false}>
-                <KYCFormPage />
-              </Format>
-            ) : (
-              <Navigate to={redirectForProtected} replace />
-            )
-          }
-        />
+      
 
         <Route
           path="/notifications"

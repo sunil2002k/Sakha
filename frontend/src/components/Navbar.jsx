@@ -82,11 +82,10 @@ const Navbar = ({ hideLogo }) => {
   }, [showUserPopup]);
 
   return (
-    <header className={`w-full z-50 sticky top-0 border-b transition-colors duration-300 ${
-      hideLogo 
-        ? "bg-base-200/50 backdrop-blur-sm border-base-300" 
+    <header className={`w-full z-50 sticky top-0 border-b transition-colors duration-300 ${hideLogo
+        ? "bg-base-200/50 backdrop-blur-sm border-base-300"
         : "bg-base-100/80 backdrop-blur-xl border-base-300 shadow-[0_0_30px_rgba(15,23,42,0.8)]"
-    }`}>
+      }`}>
       <div className="mx-auto flex items-center justify-between px-4 py-3 lg:px-8">
         <div className="flex items-center gap-4">
           {!hideLogo && (
@@ -129,7 +128,7 @@ const Navbar = ({ hideLogo }) => {
 
         {/* Right: desktop nav + user */}
         <div className="hidden items-center gap-5 md:flex">
-          
+
           {/* ONLY show these links if the sidebar is NOT present */}
           {!hideLogo && (
             <nav className="flex items-center gap-2">
@@ -173,7 +172,7 @@ const Navbar = ({ hideLogo }) => {
                 e.stopPropagation();
                 setShowUserPopup((prev) => !prev);
               }}
-              className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-primary to-secondary text-primary-content text-sm font-semibold shadow-[0_0_15px_rgba(129,140,248,0.8)] hover:brightness-110"
+              className="flex h-9 w-9 items-center justify-center rounded-full border text-primary-content text-sm font-semibold  hover:brightness-110"
             >
               {authUser ? (
                 authUser?.profilePic ? (
@@ -197,14 +196,24 @@ const Navbar = ({ hideLogo }) => {
                   e.stopPropagation();
                   setShowUserPopup(false)
                 }
-                } 
+                }
               >
                 {authUser ? (
                   <>
                     <div className="flex items-center gap-3 mb-3">
-                      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-primary to-secondary text-primary-content text-sm font-semibold">
-                        {authUser?.fullName?.[0] || "U"}
-                      </div>
+                      {authUser ? (
+                        authUser?.profilePic ? (
+                          <img
+                            src={authUser.profilePic}
+                            alt="User Avatar"
+                            className="h-9 w-9 rounded-full object-cover"
+                          />
+                        ) : (
+                          <span>{authUser?.fullName?.[0] || "U"}</span>
+                        )
+                      ) : (
+                        <FaUser />
+                      )}
                       <div className="flex flex-col">
                         <div className="flex items-center gap-2">
                           <span className="text-sm font-semibold text-base-content">

@@ -26,14 +26,14 @@ export async function signUp(req, res) {
       return res.status(400).json({ message: "Email already exists, please use a different one" });
     }
 
-    const idx = Math.floor(Math.random() * 100) + 1;
-    const randomAvatar = `https://avatar.iran.liara.run/public/${idx}.png`;
+    const randomSeed = Math.random().toString(36).substring(7);
+  const diceBearAvatar = `https://api.dicebear.com/7.x/adventurer/svg?seed=${randomSeed}`;
 
     const newUser = await User.create({
       email,
       fullName,
       password,
-      profilePic: randomAvatar,
+      profilePic: diceBearAvatar,
       role: role || "student",
     });
 
@@ -84,13 +84,11 @@ export async function signIn(req, res) {
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
-    // ── NEW: Block banned users from logging in ───────────────
     if (user.isBanned) {
       return res.status(403).json({
         message: "Your account has been suspended. Please contact support.",
       });
     }
-    // ─────────────────────────────────────────────────────────
 
     const token = jwt.sign({ userId: user._id.toString() }, JWT_SECRET, {
       expiresIn: JWT_EXPIRES_IN,
