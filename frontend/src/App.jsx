@@ -33,8 +33,9 @@ import { useThemeStore } from "./store/useThemeStore.js";
 
 import { Toaster } from "react-hot-toast";
 import AdminAnalytics from "./components/Adminanalytics.jsx";
-import AdminUserMgmt from "./components/Adminusermgmt.jsx";
+import AdminUserMgmt from "./components/AdminUserMgmt.jsx";
 import AdminTrxn from "./components/Admintrxn.jsx";
+
 
 
 const App = () => {
