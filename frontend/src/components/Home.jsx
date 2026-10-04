@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import { Link } from "react-router-dom";
+import { axiosInstance } from "../lib/axios";
 import {
   Sparkles,
   Rocket,
@@ -18,11 +18,9 @@ const Home = () => {
   const [loading, setLoading] = useState(true);
   const [featuredProjects, setFeaturedProjects] = useState([]);
 
-  const APIURL = import.meta.env.VITE_APP_URL;
-
   const fetchProjects = async () => {
     try {
-      const res = await axios.get(`${APIURL}/api/v1/projects/showproject`);
+      const res = await axiosInstance.get("/projects/showproject");
       const all = res.data.projects || [];
       setProjects(all);
       setFeaturedProjects(all.slice(0, 3));

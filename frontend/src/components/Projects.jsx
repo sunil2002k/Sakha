@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import { Link } from "react-router-dom";
+import { axiosInstance } from "../lib/axios";
 import { 
   Search, 
   Filter, 
@@ -23,11 +23,9 @@ const Projects = () => {
   const [selectedType, setSelectedType] = useState("all");
   const [sortBy, setSortBy] = useState("newest");
 
-  const APIURL = import.meta.env.VITE_APP_URL;
-
   const fetchProjects = async () => {
     try {
-      const res = await axios.get(`${APIURL}/api/v1/projects/showproject`);
+      const res = await axiosInstance.get("/projects/showproject");
       const projectsData = res.data.projects || [];
       setProjects(projectsData);
       setFilteredProjects(projectsData);

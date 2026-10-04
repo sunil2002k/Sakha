@@ -1,6 +1,12 @@
 import axios from "axios";
 
-const BASE_URL = import.meta.env.MODE === "development" ? "https://sakha-bu0z.onrender.com/api/v1" : "https://sakha-bu0z.onrender.com/api/v1";
+const API_ORIGIN = (
+  import.meta.env.VITE_APP_URL || "https://sakha-bu0z.onrender.com"
+)
+  .trim()
+  .replace(/\/+$/, "")
+  .replace(/\/api\/v1$/i, "");
+const BASE_URL = `${API_ORIGIN}/api/v1`;
 
 export const axiosInstance = axios.create({
   baseURL: BASE_URL,
