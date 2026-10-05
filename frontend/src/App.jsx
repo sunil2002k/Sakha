@@ -1,40 +1,40 @@
-import React from "react";
+import React, { lazy, Suspense } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 
-import ChatHomePage from "./pages/ChatHomePage.jsx";
-import SignUpPage from "./pages/SignUpPage.jsx";
-import LoginPage from "./pages/LoginPage.jsx";
-import NotificationsPage from "./pages/NotificationsPage.jsx";
-import CallPage from "./pages/CallPage.jsx";
-import ChatPage from "./pages/ChatPage.jsx";
-import OnboardingPage from "./pages/OnboardingPage.jsx";
-import AdminDashboard from "./pages/AdminDashboard.jsx";
-import ProjectdetailPage from "./pages/ProjectdetailPage.jsx";
-import ProfilePage from "./pages/ProfilePage.jsx";
-import KYCFormPage from "./pages/KYCFormPage.jsx";
-import FriendsPage from "./pages/FriendsPage.jsx";
-import MentorDetailPage from "./pages/MentorDetailPage.jsx";
-import MyProjectPage from "./pages/MyProjectPage.jsx";
-import ProjectSubmitPage from "./pages/ProjectSubmitPage.jsx";
+const ChatHomePage = lazy(() => import("./pages/ChatHomePage.jsx"));
+const SignUpPage = lazy(() => import("./pages/SignUpPage.jsx"));
+const LoginPage = lazy(() => import("./pages/LoginPage.jsx"));
+const NotificationsPage = lazy(() => import("./pages/NotificationsPage.jsx"));
+const CallPage = lazy(() => import("./pages/CallPage.jsx"));
+const ChatPage = lazy(() => import("./pages/ChatPage.jsx"));
+const OnboardingPage = lazy(() => import("./pages/OnboardingPage.jsx"));
+const AdminDashboard = lazy(() => import("./pages/AdminDashboard.jsx"));
+const ProjectdetailPage = lazy(() => import("./pages/ProjectdetailPage.jsx"));
+const ProfilePage = lazy(() => import("./pages/ProfilePage.jsx"));
+const KYCFormPage = lazy(() => import("./pages/KYCFormPage.jsx"));
+const FriendsPage = lazy(() => import("./pages/FriendsPage.jsx"));
+const MentorDetailPage = lazy(() => import("./pages/MentorDetailPage.jsx"));
+const MyProjectPage = lazy(() => import("./pages/MyProjectPage.jsx"));
+const ProjectSubmitPage = lazy(() => import("./pages/ProjectSubmitPage.jsx"));
 
-import Home from "./components/Home.jsx";
-import About from "./components/About.jsx";
-import Search from "./components/Search.jsx";
-import Projects from "./components/Projects.jsx";
-import PaymentResult from "./components/PaymentResult.jsx";
+const Home = lazy(() => import("./components/Home.jsx"));
+const About = lazy(() => import("./components/About.jsx"));
+const Search = lazy(() => import("./components/Search.jsx"));
+const Projects = lazy(() => import("./components/Projects.jsx"));
+const PaymentResult = lazy(() => import("./components/PaymentResult.jsx"));
 import LayOut from "./components/LayOut.jsx";
 import Format from "./components/Format.jsx";
 import PageLoader from "./components/PageLoader.jsx";
 import ScrollToTop from "./components/ScrollToTop.jsx";
-import KYCDetails from "./components/KYCDetails.jsx";
+const KYCDetails = lazy(() => import("./components/KYCDetails.jsx"));
 
 import useAuthUser from "./hooks/useAuthUser.js";
 import { useThemeStore } from "./store/useThemeStore.js";
 
 import { Toaster } from "react-hot-toast";
-import AdminAnalytics from "./components/Adminanalytics.jsx";
-import AdminUserMgmt from "./components/AdminUserMgmt.jsx";
-import AdminTrxn from "./components/Admintrxn.jsx";
+const AdminAnalytics = lazy(() => import("./components/Adminanalytics.jsx"));
+const AdminUserMgmt = lazy(() => import("./components/AdminUserMgmt.jsx"));
+const AdminTrxn = lazy(() => import("./components/Admintrxn.jsx"));
 
 
 
@@ -54,6 +54,7 @@ const App = () => {
   return (
     <div data-theme={theme}>
       <ScrollToTop />
+      <Suspense fallback={<PageLoader />}>
       <Routes>
         <Route path="/" element={<LayOut />}>
           <Route index element={<Home />} />
@@ -291,6 +292,7 @@ const App = () => {
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      </Suspense>
 
       <Toaster />
     </div>

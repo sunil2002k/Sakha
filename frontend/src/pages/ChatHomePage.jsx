@@ -16,14 +16,14 @@ import {
 } from "lucide-react";
 
 import { capitialize } from "../lib/utils";
-import { getLanguageFlag } from "../components/FriendCard";
+import LanguageFlag from "../components/LanguageFlag";
 
 const ChatHomePage = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [outgoingRequestsIds, setOutgoingRequestsIds] = useState(new Set());
 
-  const { data: friends = [], isLoading: loadingFriends } = useQuery({
+  const { data: friends = [] } = useQuery({
     queryKey: ["friends"],
     queryFn: getUserFriends,
   });
@@ -157,11 +157,11 @@ const ChatHomePage = () => {
                     {/* Language badges */}
                     <div className="flex flex-wrap gap-1.5">
                       <span className="badge badge-secondary badge-sm font-medium gap-1">
-                        {getLanguageFlag(user.nativeLanguage)}
+                        <LanguageFlag language={user.nativeLanguage} />
                         Native: {capitialize(user.nativeLanguage)}
                       </span>
                       <span className="badge badge-outline badge-sm font-medium gap-1">
-                        {getLanguageFlag(user.learningLanguage)}
+                        <LanguageFlag language={user.learningLanguage} />
                         Learning: {capitialize(user.learningLanguage)}
                       </span>
                     </div>

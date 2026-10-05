@@ -6,10 +6,10 @@ const API_ORIGIN = (
   .trim()
   .replace(/\/+$/, "")
   .replace(/\/api\/v1$/i, "");
-const BASE_URL = `${API_ORIGIN}/api/v1`;
+export const API_BASE_URL = `${API_ORIGIN}/api/v1`;
 
 export const axiosInstance = axios.create({
-  baseURL: BASE_URL,
+  baseURL: API_BASE_URL,
   withCredentials: true, // send cookies with the request
 });
 

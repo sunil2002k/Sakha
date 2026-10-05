@@ -37,7 +37,7 @@ const AdminUserMgmt = () => {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
-  const [kycFilter, setKycFilter] = useState("all");
+  const [kycFilter] = useState("all");
   const [actionLoadingId, setActionLoadingId] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
   const [sortBy, setSortBy] = useState("createdAt");

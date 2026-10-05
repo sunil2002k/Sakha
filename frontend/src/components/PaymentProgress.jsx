@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import { axiosInstance } from "../lib/axios";
 
-const PaymentProgress = ({ projectId, targetAmount, APIURL }) => {
+const PaymentProgress = ({ projectId, targetAmount }) => {
     const [fundingStatus, setFundingStatus] = useState({
         totalFunded: 0,
         targetAmount: targetAmount,
@@ -10,30 +10,38 @@ const PaymentProgress = ({ projectId, targetAmount, APIURL }) => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        if (!projectId || !APIURL) return;
+        let active = true;
+        if (!projectId) {
+            setLoading(false);
+            return;
+        }
 
         const fetchStatus = async () => {
             setLoading(true);
             try {
-                const statusRes = await axios.get(
-                    `${APIURL}/api/v1/payments/${projectId}/funding-status`
-                );
+                const statusRes = await axiosInstance.get(`/payments/${projectId}/funding-status`);
                 const fetchedData = statusRes.data.data || {};
+                if (!active) return;
                 setFundingStatus({
                     totalFunded: fetchedData.totalFunded || 0,
                     targetAmount: fetchedData.targetAmount || targetAmount,
                     progress: typeof fetchedData.progress === 'number' ? fetchedData.progress : 0,
                 });
             } catch (sErr) {
-                console.error('Failed to fetch funding status:', sErr);
-                setFundingStatus((prev) => ({ ...prev, targetAmount: targetAmount }));
+                if (active) {
+                    console.error('Failed to fetch funding status:', sErr);
+                    setFundingStatus((prev) => ({ ...prev, targetAmount: targetAmount }));
+                }
             } finally {
-                setLoading(false);
+                if (active) setLoading(false);
             }
         };
 
-        fetchStatus();
-    }, [projectId, APIURL, targetAmount]);
+        void fetchStatus();
+        return () => {
+            active = false;
+        };
+    }, [projectId, targetAmount]);
 
     if (!targetAmount || targetAmount <= 0) return null;
 

@@ -173,10 +173,10 @@ const ProfilePage = () => {
                 authUser.location && { icon: MapPin, label: "Location", value: authUser.location },
                 { icon: Users, label: "Connections", value: `${authUser.friends?.length || 0} friends` },
                 { icon: Calendar, label: "Member Since", value: joinDate },
-              ].filter(Boolean).map(({ icon: Icon, label, value }, i) => (
+              ].filter(Boolean).map(({ icon, label, value }, i) => (
                 <div key={i} className="flex items-center justify-between py-4 gap-4">
                   <div className="flex items-center gap-3 text-base-content/50">
-                    <Icon className="w-4 h-4 shrink-0" />
+                    {React.createElement(icon, { className: "w-4 h-4 shrink-0" })}
                     <span className="text-sm">{label}</span>
                   </div>
                   <span className="text-sm font-semibold text-right capitalize truncate max-w-[55%]">{value}</span>

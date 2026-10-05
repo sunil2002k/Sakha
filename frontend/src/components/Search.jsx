@@ -1,38 +1,55 @@
 import React, { useEffect, useState } from "react";
 import { useLocation, Link } from "react-router-dom";
-import axios from "axios";
 import toast from "react-hot-toast";
 import { Search as SearchIcon, ArrowUpRight, Layers, Cpu, ArrowLeft } from "lucide-react";
+import { axiosInstance } from "../lib/axios";
 
 const Search = () => {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
   const location = useLocation();
-  const APIURL = import.meta.env.VITE_APP_URL;
   const query = new URLSearchParams(location.search).get("q");
 
   useEffect(() => {
+    let active = true;
+
     const fetchResults = async () => {
-      if (!query) return;
+      if (!query) {
+        setProjects([]);
+        setMessage("");
+        setLoading(false);
+        return;
+      }
+
       try {
         setLoading(true);
-        const res = await axios.get(`${APIURL}/api/v1/projects/search?q=${query}`);
-        if (res.data.projects.length > 0) {
-          setProjects(res.data.projects);
+        const res = await axiosInstance.get("/projects/search", {
+          params: { q: query },
+        });
+        const searchResults = res.data.projects || [];
+        if (searchResults.length > 0) {
+          if (!active) return;
+          setProjects(searchResults);
           setMessage("");
         } else {
+          if (!active) return;
           setProjects([]);
           setMessage("No matching projects found.");
         }
-      } catch (error) {
+      } catch {
+        if (!active) return;
         toast.error("Error fetching search results.");
         setMessage("Error fetching results. Please try again.");
       } finally {
-        setLoading(false);
+        if (active) setLoading(false);
       }
     };
-    fetchResults();
+
+    void fetchResults();
+    return () => {
+      active = false;
+    };
   }, [query]);
 
   /* ── Loading ── */

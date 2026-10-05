@@ -3,14 +3,39 @@ import FundedProject from "../models/fundedProject.model.js";
 import Payment from "../models/payment.model.js";
 import { esewaPaymentHash, verifyEsewa } from "../utils/esewa.js";
 import Project from "../models/project.model.js";
-import User from "../models/user.model.js"
+import { FRONTEND_URL } from "../config/env.js";
 
 
-const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
+const getPaymentRedirect = (requestedRedirect) => {
+  const fallback = `${FRONTEND_URL}/payment-result`;
+  if (typeof requestedRedirect !== "string") return fallback;
+
+  try {
+    const target = new URL(requestedRedirect);
+    if (
+      target.origin !== new URL(FRONTEND_URL).origin ||
+      target.pathname !== "/payment-result"
+    ) {
+      return fallback;
+    }
+    target.hash = "";
+    return target.toString();
+  } catch {
+    return fallback;
+  }
+};
 
 export const initiateEsewaPayment = async (req, res) => {
   try {
-    const { projectId, amount, fundedBy } = req.body;
+    const { projectId, amount } = req.body;
+    const paymentAmount = Number(amount);
+
+    if (!Number.isFinite(paymentAmount) || paymentAmount <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Amount must be a positive number",
+      });
+    }
 
     // Validate project
     const project = await Project.findById(projectId);
@@ -21,28 +46,19 @@ export const initiateEsewaPayment = async (req, res) => {
       });
     }
 
-    // Validate user
-    const user = await User.findById(fundedBy);
-    if (!user) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid user",
-      });
-    }
-
     // Create pending payment record
     const fundedProject = await FundedProject.create({
       project: projectId,
-      amount,
-      totalPrice: amount,
-      fundedBy,
+      amount: paymentAmount,
+      totalPrice: paymentAmount,
+      fundedBy: req.user._id,
       paymentMethod: "esewa",
       status: "pending",
     });
 
     // Generate eSewa hash
     const paymentInit = await esewaPaymentHash({
-      amount,
+      amount: paymentAmount,
       transaction_uuid: fundedProject._id.toString(),
     });
 
@@ -51,7 +67,7 @@ export const initiateEsewaPayment = async (req, res) => {
       signature: paymentInit.signature,
       signed_field_names: paymentInit.signed_field_names,
       transaction_uuid: fundedProject._id.toString(),
-      amount,
+      amount: paymentAmount,
     });
 
   } catch (error) {
@@ -86,27 +102,64 @@ export const completeEsewaPayment = async (req, res) => {
       const encodedErr = Buffer.from(JSON.stringify(payloadErr)).toString(
         "base64"
       );
-      const redirectTo = req.query.redirect || `${FRONTEND_URL}/payment-result`;
+      const redirectTo = getPaymentRedirect(req.query.redirect);
       const sep = redirectTo.includes("?") ? "&" : "?";
       return res.redirect(
         `${redirectTo}${sep}data=${encodeURIComponent(encodedErr)}`
       );
     }
 
-    // Mark funded project completed
-    await FundedProject.findByIdAndUpdate(fundedProjectRecord._id, {
-      status: "completed",
-    });
+    if (
+      Number(paymentInfo.decodedData.total_amount) !==
+      Number(fundedProjectRecord.totalPrice)
+    ) {
+      throw new Error("Payment amount does not match the pending transaction");
+    }
 
-    // Create a Payment log record
-    const paymentData = await Payment.create({
+    const paymentRecord = {
       transactionId: paymentInfo.decodedData.transaction_code,
       projectId: fundedProjectRecord.project,
       amount: fundedProjectRecord.totalPrice,
       dataFromVerificationReq: paymentInfo,
       paymentGateway: "esewa",
       status: "success",
+    };
+    let paymentData = await Payment.findOne({
+      transactionId: paymentRecord.transactionId,
+      projectId: paymentRecord.projectId,
     });
+
+    if (!paymentData) {
+      const completedFunding = await FundedProject.findOneAndUpdate(
+        { _id: fundedProjectRecord._id, status: "pending" },
+        { $set: { status: "completed" } },
+        { new: true }
+      );
+      const latestFunding = completedFunding || await FundedProject.findById(
+        fundedProjectRecord._id
+      ).select("status");
+
+      if (latestFunding?.status === "completed") {
+        try {
+          paymentData = await Payment.create(paymentRecord);
+        } catch (error) {
+          if (error.code !== 11000) throw error;
+          paymentData = await Payment.findOne({
+            transactionId: paymentRecord.transactionId,
+            projectId: paymentRecord.projectId,
+          });
+        }
+      } else {
+        paymentData = await Payment.findOne({
+          transactionId: paymentRecord.transactionId,
+          projectId: paymentRecord.projectId,
+        });
+      }
+    }
+
+    if (!paymentData) {
+      throw new Error("Payment is already being processed");
+    }
 
     // Prepare payload to send to frontend
     const payload = {
@@ -118,14 +171,13 @@ export const completeEsewaPayment = async (req, res) => {
         amount: paymentData.amount,
         paymentGateway: paymentData.paymentGateway,
         status: paymentData.status,
-        dataFromVerificationReq: paymentData.dataFromVerificationReq,
         _id: paymentData._id,
         createdAt: paymentData.createdAt,
       },
     };
 
     // Determine frontend redirect target (can be passed by caller)
-    const redirectTo = req.query.redirect || `${FRONTEND_URL}/payment-result`;
+    const redirectTo = getPaymentRedirect(req.query.redirect);
     const encoded = Buffer.from(JSON.stringify(payload)).toString("base64");
     const sep = redirectTo.includes("?") ? "&" : "?";
 
@@ -137,10 +189,9 @@ export const completeEsewaPayment = async (req, res) => {
     const payload = {
       success: false,
       message: "Payment verification failed",
-      error: error.message || error,
     };
     const encoded = Buffer.from(JSON.stringify(payload)).toString("base64");
-    const redirectTo = req.query.redirect || `${FRONTEND_URL}/payment-result`;
+    const redirectTo = getPaymentRedirect(req.query.redirect);
     const sep = redirectTo.includes("?") ? "&" : "?";
     return res.redirect(
       `${redirectTo}${sep}data=${encodeURIComponent(encoded)}`

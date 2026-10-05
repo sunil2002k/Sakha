@@ -14,9 +14,20 @@ import paymentRouter from "./routes/payment.routes.js";
 import kycRouter from "./routes/kyc.routes.js";
 import adminRouter from "./routes/admin.routes.js";
 import cloudinaryRouter from "./routes/cloudinary.routes.js";
+import { FRONTEND_ORIGINS, NODE_ENV } from "./config/env.js";
 const app = express();
 
-app.use(cors({ origin: true, credentials: true }));
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || FRONTEND_ORIGINS.includes(origin)) {
+        return callback(null, true);
+      }
+      return callback(null, false);
+    },
+    credentials: true,
+  })
+);
 
 app.use(express.json());
 app.use(cookieParser());
@@ -30,7 +41,6 @@ app.use("/api/v1/chat", chatRouter);
 app.use("/api/v1/kyc", kycRouter);
 app.use("/api/v1/admin", adminRouter);
 app.use("/api/v1/cloudinary", cloudinaryRouter);
-app.use(errorMiddleware);
 
 app.get("/", (req, res) => {
   res.send("Welcome to the InnovateU API");
@@ -41,9 +51,16 @@ const __dirname = path.dirname(__filename);
 
 // serve uploaded files
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.use(errorMiddleware);
 
-// --- 4. Start Server ---
-app.listen(PORT, async () => {
-  console.log(`The app is running in port ${PORT}`);
+const startServer = async () => {
   await connectToDatabase();
+  app.listen(PORT, () => {
+    console.log(`The app is running in ${NODE_ENV} mode on port ${PORT}`);
+  });
+};
+
+startServer().catch((error) => {
+  console.error("Failed to start server:", error);
+  process.exitCode = 1;
 });

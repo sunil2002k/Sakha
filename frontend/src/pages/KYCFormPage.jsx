@@ -1,12 +1,10 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { ArrowLeft, UploadCloud, Camera } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
-import useAuthUser from "../hooks/useAuthUser";
+import { axiosInstance } from "../lib/axios";
 
 const KYCFormPage = () => {
   const navigate = useNavigate();
-  const { authUser } = useAuthUser();
 
   const [formData, setFormData] = useState({
     fullName: "",
@@ -173,11 +171,10 @@ const KYCFormPage = () => {
     data.append("dob", formData.dob);
     data.append("address", formData.address);
     data.append("idCard", idCard);
-    data.append("submittedBy", authUser._id);
     data.append("selfie", capturedImage); 
 
     try {
-      await axios.post(`${import.meta.env.VITE_APP_URL}/api/v1/kyc/submit`, data);
+      await axiosInstance.post("/kyc/submit", data);
       alert("KYC submitted successfully.");
       navigate("/");
     } catch (err) {

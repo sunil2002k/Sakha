@@ -13,8 +13,8 @@ import authorize, {isAdmin} from "../middlewares/auth.middleware.js";
 
 const router = express.Router();
 
-// Public or admin list
-router.get("/", getUsers);
+// Full user records are available only to administrators.
+router.get("/", authorize, isAdmin, getUsers);
 
 // Protected user-related routes 
 router.get("/friend-requests", authorize, getFriendRequests);

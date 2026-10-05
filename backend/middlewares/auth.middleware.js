@@ -4,11 +4,11 @@ import { JWT_SECRET } from "../config/env.js";
 
 const authorize = async (req, res, next) => {
   try {
-    const token =
-      req.cookies?.jwt ||
-      (req.headers.authorization
-        ? req.headers.authorization.split(" ")[1]
-        : null);
+    const authorization = req.headers.authorization;
+    const bearerToken = authorization?.startsWith("Bearer ")
+      ? authorization.slice("Bearer ".length).trim()
+      : null;
+    const token = req.cookies?.jwt || bearerToken;
 
     if (!token) {
       return res
@@ -28,6 +28,10 @@ const authorize = async (req, res, next) => {
     const user = await User.findById(decoded.userId).select("-password");
     if (!user) {
       return res.status(401).json({ message: "Unauthorized - User not found" });
+    }
+    if (user.isBanned) {
+      res.clearCookie("jwt");
+      return res.status(403).json({ message: "Account suspended" });
     }
 
     req.user = user;

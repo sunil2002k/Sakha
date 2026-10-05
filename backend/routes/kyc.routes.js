@@ -10,9 +10,9 @@ import {
 
 const kycRouter = Router();
 
-kycRouter.post("/submit", upload.single("idCard"), submitKYC);
+kycRouter.post("/submit", authorize, upload.single("idCard"), submitKYC);
 
-kycRouter.get("/all", show_KYC);
+kycRouter.get("/all", authorize, isAdmin, show_KYC);
 
 kycRouter.put("/:id/verify", authorize, isAdmin, verifyKYC);
 kycRouter.put("/:id/reject", authorize, isAdmin, rejectKYC);

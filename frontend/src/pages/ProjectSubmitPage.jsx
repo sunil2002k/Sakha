@@ -1,6 +1,7 @@
 import React, { useState, useRef } from "react";
 import axios from "axios";
 import { axiosInstance } from "../lib/axios.js";
+import { AI_SERVICE_URL } from "../lib/ai.js";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import {
@@ -43,8 +44,6 @@ const ProjectSubmitPage = () => {
     problem: "",
   });
 
-  const APIURL = import.meta.env.VITE_APP_URL;
-
   const handlePdfChange = (e) => {
     const file = e.target.files[0];
     setPdfFile(file);
@@ -60,7 +59,7 @@ const ProjectSubmitPage = () => {
     const fd = new FormData();
     fd.append("file", pdfFile);
     try {
-      const res = await axios.post(`http://127.0.0.1:5000/analyze-pdf`, fd, {
+      const res = await axios.post(`${AI_SERVICE_URL}/analyze-pdf`, fd, {
         headers: { "Content-Type": "multipart/form-data" },
       });
       const data = res.data;
@@ -323,14 +322,16 @@ const ProjectSubmitPage = () => {
                   {[
                     { value: "mentorship", icon: Users, title: "Mentorship", desc: "Connect with experienced mentors who can guide your project.", color: "secondary" },
                     { value: "funding", icon: HandCoins, title: "Raise Funds", desc: "Raise capital from investors and community supporters.", color: "primary" },
-                  ].map(({ value, icon: Icon, title, desc, color }) => (
+                  ].map(({ value, icon, title, desc, color }) => (
                     <label key={value} className={`cursor-pointer card border-2 transition-all duration-200 ${
                       form.type === value ? `border-${color} bg-${color}/5` : "border-base-300 bg-base-100 hover:border-base-content/20"
                     }`}>
                       <div className="card-body p-5 gap-3">
                         <div className="flex items-start justify-between">
                           <div className={`p-2.5 rounded-xl bg-${color}/10`}>
-                            <Icon className={`w-5 h-5 text-${color}`} />
+                            {React.createElement(icon, {
+                              className: `w-5 h-5 text-${color}`,
+                            })}
                           </div>
                           <input
                             type="radio" name="type" value={value}

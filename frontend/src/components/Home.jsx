@@ -14,7 +14,6 @@ import SkeletonCard from "./SkeletonCard";
 import SuccessPredictor from "./SuccessPredictor";
 
 const Home = () => {
-  const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [featuredProjects, setFeaturedProjects] = useState([]);
 
@@ -22,7 +21,6 @@ const Home = () => {
     try {
       const res = await axiosInstance.get("/projects/showproject");
       const all = res.data.projects || [];
-      setProjects(all);
       setFeaturedProjects(all.slice(0, 3));
     } catch (err) {
       console.error("Error fetching projects:", err);

@@ -35,18 +35,41 @@ const ChatPage = () => {
 
   const { authUser } = useAuthUser();
 
-  const { data: tokenData } = useQuery({
+  const {
+    data: tokenData,
+    isLoading: tokenLoading,
+    error: tokenError,
+  } = useQuery({
     queryKey: ["streamToken"],
     queryFn: getStreamToken,
     enabled: !!authUser,
   });
 
   useEffect(() => {
-    const initChat = async () => {
-      if (!tokenData?.token || !authUser) return;
+    let active = true;
+    let client;
 
+    if (tokenLoading) {
+      setLoading(true);
+      return () => {
+        active = false;
+      };
+    }
+
+    if (tokenError || !tokenData?.token || !authUser) {
+      setError(true);
+      setLoading(false);
+      return () => {
+        active = false;
+      };
+    }
+
+    setLoading(true);
+    setError(false);
+
+    const initChat = async () => {
       try {
-        const client = StreamChat.getInstance(STREAM_API_KEY);
+        client = new StreamChat(STREAM_API_KEY);
 
         await client.connectUser(
           {
@@ -57,6 +80,11 @@ const ChatPage = () => {
           tokenData.token
         );
 
+        if (!active) {
+          await client.disconnectUser();
+          return;
+        }
+
         const channelId = [authUser._id, targetUserId].sort().join("-");
         const currChannel = client.channel("messaging", channelId, {
           members: [authUser._id, targetUserId],
@@ -64,27 +92,48 @@ const ChatPage = () => {
 
         await currChannel.watch();
 
+        if (!active) {
+          await client.disconnectUser();
+          return;
+        }
+
         setChatClient(client);
         setChannel(currChannel);
       } catch (err) {
         console.error("Error initializing chat:", err);
-        setError(true);
-        toast.error("Could not connect to chat. Please try again.");
+        if (active) {
+          setError(true);
+          toast.error("Could not connect to chat. Please try again.");
+        }
       } finally {
-        setLoading(false);
+        if (active) setLoading(false);
       }
     };
 
-    initChat();
-  }, [tokenData, authUser, targetUserId]);
+    void initChat();
 
-  const handleVideoCall = () => {
-    if (channel) {
-      const callUrl = `${window.location.origin}/call/${channel.id}`;
-      channel.sendMessage({
+    return () => {
+      active = false;
+      if (client?.userID) {
+        void client.disconnectUser().catch((disconnectError) => {
+          console.warn("Could not disconnect chat client cleanly:", disconnectError);
+        });
+      }
+    };
+  }, [authUser, targetUserId, tokenData?.token, tokenError, tokenLoading]);
+
+  const handleVideoCall = async () => {
+    if (!channel) return;
+
+    const callUrl = `${window.location.origin}/call/${channel.id}`;
+    try {
+      await channel.sendMessage({
         text: `I've started a video call. Join me here: ${callUrl}`,
       });
       toast.success("Video call link sent!");
+    } catch (err) {
+      console.error("Failed to send video call link:", err);
+      toast.error("Could not send the video call link. Please try again.");
     }
   };
 
@@ -116,39 +165,27 @@ const ChatPage = () => {
     );
   }
 
-return (
-  <div className="h-[93vh] flex flex-col overflow-hidden bg-base-100">
-
-    <div className="flex-1 min-h-0 overflow-hidden">
-      <Chat client={chatClient}>
-        <Channel channel={channel}>
-          <div className="flex h-full w-full overflow-hidden">
-            
-            <Window>
-              
-              {/* Custom Header */}
-              <div className="flex items-center justify-between px-5 py-3 border-b border-base-300 bg-base-100">
-                
-                {/* Channel Name */}
-                <ChannelHeader />
-
-                {/* Video Call Icon - Right Most */}
-                <CallButton handleVideoCall={handleVideoCall} />
-                
-              </div>
-
-              <MessageList />
-              <MessageInput focus />
-            </Window>
-
-            <Thread />
-          </div>
-        </Channel>
-      </Chat>
+  return (
+    <div className="h-[93vh] flex flex-col overflow-hidden bg-base-100">
+      <div className="flex-1 min-h-0 overflow-hidden">
+        <Chat client={chatClient}>
+          <Channel channel={channel}>
+            <div className="flex h-full w-full overflow-hidden">
+              <Window>
+                <div className="flex items-center justify-between px-5 py-3 border-b border-base-300 bg-base-100">
+                  <ChannelHeader />
+                  <CallButton handleVideoCall={handleVideoCall} />
+                </div>
+                <MessageList />
+                <MessageInput focus />
+              </Window>
+              <Thread />
+            </div>
+          </Channel>
+        </Chat>
+      </div>
     </div>
-
-  </div>
-);
+  );
 };
 
 export default ChatPage;

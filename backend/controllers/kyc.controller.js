@@ -14,57 +14,63 @@ const projectRoot = path.resolve(__dirname, "..");
 const TEMP_DIR = path.join(projectRoot, "public", "temp");
 
 export const submitKYC = async (req, res) => {
+  let selfieTempPath;
   try {
-    const { fullName, dob, address, selfie, submittedBy } = req.body;
+    const { fullName, dob, address, selfie } = req.body;
     const idCardFile = req.file;
 
-    // 1. Validation
-    if (!idCardFile)
+    if (!idCardFile) {
       return res.status(400).json({ error: "ID Card image is required." });
-    if (!selfie)
-      return res.status(400).json({ error: "Selfie capture is required." });
-    if (!submittedBy)
-      return res
-        .status(400)
-        .json({ error: "User ID (submittedBy) is required." });
+    }
+    if (
+      typeof fullName !== "string" ||
+      !fullName.trim() ||
+      !dob ||
+      typeof address !== "string" ||
+      !address.trim()
+    ) {
+      return res.status(400).json({ error: "Name, date of birth, and address are required." });
+    }
+    if (
+      typeof selfie !== "string" ||
+      !selfie.startsWith("data:image/jpeg;base64,")
+    ) {
+      return res.status(400).json({ error: "A JPEG selfie image is required." });
+    }
+    if (!["image/jpeg", "image/png", "image/webp"].includes(idCardFile.mimetype)) {
+      return res.status(400).json({ error: "ID Card must be a JPEG, PNG, or WebP image." });
+    }
 
-    // 2. Upload ID Card to Cloudinary
     const idCardResponse = await uploadOnCloudinary(idCardFile.path);
     if (!idCardResponse) {
-      return res
-        .status(500)
-        .json({ error: "Failed to upload ID Card to Cloudinary" });
+      return res.status(500).json({ error: "Failed to upload ID Card to Cloudinary" });
     }
+
     const selfieFilename = `selfie-${Date.now()}-${Math.round(
       Math.random() * 1e9
     )}.jpg`;
-    const selfieTempPath = path.join(TEMP_DIR, selfieFilename);
+    selfieTempPath = path.join(TEMP_DIR, selfieFilename);
 
-    // Remove the data URL prefix and save to temp disk
-    const base64Data = selfie.replace(/^data:image\/\w+;base64,/, "");
+    const base64Data = selfie.slice("data:image/jpeg;base64,".length);
     fs.writeFileSync(selfieTempPath, base64Data, "base64");
 
-    // Upload Selfie to Cloudinary
     const selfieResponse = await uploadOnCloudinary(selfieTempPath);
     if (!selfieResponse) {
-      return res
-        .status(500)
-        .json({ error: "Failed to upload Selfie to Cloudinary" });
+      return res.status(500).json({ error: "Failed to upload Selfie to Cloudinary" });
     }
 
-    // 4. Create Database Entry
     const newKYC = new KYCModel({
-      fullName,
+      fullName: fullName.trim(),
       dob,
-      address,
-      idCardUrl: idCardResponse.secure_url, // Store Cloudinary URL
-      selfieUrl: selfieResponse.secure_url, // Store Cloudinary URL
-      submittedBy,
+      address: address.trim(),
+      idCardUrl: idCardResponse.secure_url,
+      selfieUrl: selfieResponse.secure_url,
+      submittedBy: req.user._id,
     });
 
     await newKYC.save();
 
-    console.log(`✅ KYC Submitted for: ${fullName} (User: ${submittedBy})`);
+    console.log(`KYC submitted for user ${req.user._id}`);
 
     res.status(201).json({
       message: "KYC submitted successfully",
@@ -73,6 +79,16 @@ export const submitKYC = async (req, res) => {
   } catch (error) {
     console.error("Server Error:", error);
     res.status(500).json({ error: "Internal Server Error" });
+  } finally {
+    for (const filePath of [req.file?.path, selfieTempPath]) {
+      if (filePath && fs.existsSync(filePath)) {
+        try {
+          fs.unlinkSync(filePath);
+        } catch (cleanupError) {
+          console.error("Failed to remove temporary KYC upload:", cleanupError);
+        }
+      }
+    }
   }
 };
 

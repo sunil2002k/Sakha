@@ -50,7 +50,9 @@ export const getUser = async (req, res, next) => {
 export const getUserById = async (req, res) => {
   try {
     const userId = req.params.id.trim();
-    const user = await User.findById(userId); // This fetches all fields (including social links, bio, etc.)
+    const user = await User.findById(userId).select(
+      "fullName role bio profilePic nativeLanguage learningLanguage location institution"
+    );
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
@@ -82,7 +84,9 @@ export async function getRecommendedUsers(req, res) {
         { _id: { $nin: currentUser.friends } }, // exclude current user's friends
         { isOnboarded: true },
       ],
-    });
+    }).select(
+      "fullName role bio profilePic nativeLanguage learningLanguage location institution"
+    );
 
     // return array (or empty array) to frontend
     return res.status(200).json(recommendedUsers || []);

@@ -26,54 +26,122 @@ const CallPage = () => {
   const [client, setClient] = useState(null);
   const [call, setCall] = useState(null);
   const [isConnecting, setIsConnecting] = useState(true);
+  const [callError, setCallError] = useState("");
 
-  const { authUser, isLoading } = useAuthUser();
+  const { authUser, isLoading: authLoading } = useAuthUser();
 
-  const { data: tokenData } = useQuery({
+  const {
+    data: tokenData,
+    isLoading: tokenLoading,
+    error: tokenError,
+  } = useQuery({
     queryKey: ["streamToken"],
     queryFn: getStreamToken,
     enabled: !!authUser,
   });
 
   useEffect(() => {
+    let isActive = true;
+    let videoClient;
+    let callInstance;
+    setClient(null);
+    setCall(null);
+
+    if (authLoading || tokenLoading) {
+      return () => {
+        isActive = false;
+      };
+    }
+
+    if (tokenError || !tokenData?.token || !authUser || !callId || !STREAM_API_KEY) {
+      setCallError("Could not initialize the video call. Please sign in and try again.");
+      setIsConnecting(false);
+      return () => {
+        isActive = false;
+      };
+    }
+
+    setIsConnecting(true);
+    setCallError("");
+
     const initCall = async () => {
-      if (!tokenData.token || !authUser || !callId) return;
-
       try {
-        toast.success("Initializing Stream video client...");
-
         const user = {
           id: authUser._id,
           name: authUser.fullName,
           image: authUser.profilePic,
         };
 
-        const videoClient = new StreamVideoClient({
+        videoClient = new StreamVideoClient({
           apiKey: STREAM_API_KEY,
           user,
           token: tokenData.token,
         });
 
-        const callInstance = videoClient.call("default", callId);
-
+        callInstance = videoClient.call("default", callId);
         await callInstance.join({ create: true });
 
-        toast.success   ("Joined call successfully");
-
+        if (!isActive) return;
         setClient(videoClient);
         setCall(callInstance);
       } catch (error) {
         console.error("Error joining call:", error);
-        toast.error("Could not join the call. Please try again.");
+        if (callInstance) {
+          try {
+            await callInstance.leave();
+          } catch (leaveError) {
+            console.warn("Could not leave failed video call:", leaveError);
+          }
+        }
+        if (videoClient) {
+          try {
+            await videoClient.disconnectUser();
+          } catch (disconnectError) {
+            console.warn("Could not disconnect failed video client:", disconnectError);
+          }
+        }
+        callInstance = null;
+        videoClient = null;
+        if (isActive) {
+          setCallError("Could not join the call. Please try again.");
+          toast.error("Could not join the call. Please try again.");
+        }
       } finally {
-        setIsConnecting(false);
+        if (isActive) setIsConnecting(false);
       }
     };
 
-    initCall();
-  }, [tokenData, authUser, callId]);
+    void initCall();
 
-  if (isLoading || isConnecting) return <PageLoader />;
+    return () => {
+      isActive = false;
+      void (async () => {
+        if (callInstance) {
+          try {
+            await callInstance.leave();
+          } catch (error) {
+            console.warn("Could not leave video call cleanly:", error);
+          }
+        }
+        if (videoClient) {
+          try {
+            await videoClient.disconnectUser();
+          } catch (error) {
+            console.warn("Could not disconnect video client cleanly:", error);
+          }
+        }
+      })();
+    };
+  }, [
+    authLoading,
+    authUser,
+    callId,
+    tokenData?.token,
+    tokenError,
+    tokenLoading,
+  ]);
+
+  if (authLoading || tokenLoading || isConnecting) return <PageLoader />;
 
   return (
     <div className="h-screen flex flex-col items-center justify-center">
@@ -86,7 +154,7 @@ const CallPage = () => {
           </StreamVideo>
         ) : (
           <div className="flex items-center justify-center h-full">
-            <p>Could not initialize call. Please refresh or try again later.</p>
+            <p>{callError || "Could not initialize call. Please refresh or try again later."}</p>
           </div>
         )}
       </div>
@@ -100,7 +168,11 @@ const CallContent = () => {
 
   const navigate = useNavigate();
 
-  if (callingState === CallingState.LEFT) return navigate("/");
+  useEffect(() => {
+    if (callingState === CallingState.LEFT) navigate("/");
+  }, [callingState, navigate]);
+
+  if (callingState === CallingState.LEFT) return null;
 
   return (
     <StreamTheme>

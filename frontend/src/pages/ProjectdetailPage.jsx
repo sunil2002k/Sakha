@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import axios from "axios";
-import { axiosInstance } from "../lib/axios";
+import { API_BASE_URL, axiosInstance } from "../lib/axios";
 import {
   FaShare,
   FaHeart,
@@ -28,11 +28,9 @@ const ProjectdetailPage = () => {
   const [activeTab, setActiveTab] = useState("about");
   const [isSaved, setIsSaved] = useState(false);
 
-  const APIURL = import.meta.env.VITE_APP_URL;
-
-  const fetchProjectDetail = async () => {
+  const fetchProjectDetail = useCallback(async (signal) => {
     try {
-      const res = await axios.get(`${APIURL}/api/v1/projects/${id}`);
+      const res = await axiosInstance.get(`/projects/${id}`, { signal });
       const proj = res.data.project ?? res.data;
       setProject(proj);
       setFundedProjects((res.data.fundedProjects || []).filter(fp => fp.status === "completed"));
@@ -41,46 +39,50 @@ const ProjectdetailPage = () => {
 
       if (addedById) {
         try {
-          const userRes = await axios.get(`${APIURL}/api/v1/users/${addedById}`);
+          const userRes = await axiosInstance.get(`/users/${addedById}`, { signal });
           const userData = userRes.data?.data || userRes.data;
           setCreator(userData);
         } catch (uErr) {
-          console.error("Failed to fetch creator info:", uErr);
+          if (!axios.isCancel(uErr)) {
+            console.error("Failed to fetch creator info:", uErr);
+          }
         }
       }
     } catch (err) {
-      console.error("Error fetching project details:", err);
+      if (!axios.isCancel(err)) {
+        console.error("Error fetching project details:", err);
+      }
     } finally {
-      setLoading(false);
+      if (!signal.aborted) setLoading(false);
     }
-  };
+  }, [id]);
 
   useEffect(() => {
-    fetchProjectDetail();
-  }, [id]);
+    const controller = new AbortController();
+    void fetchProjectDetail(controller.signal);
+    return () => controller.abort();
+  }, [fetchProjectDetail]);
 
   const handlePayNow = async () => {
     try {
       await axiosInstance.get("/auth/me");
       setShowCustomAmountInput(true);
       setCustomAmount(project.targetAmount || 500);
-    } catch (err) {
+    } catch {
       toast.error("Please log in to support this project.");
       navigate("/login");
     }
   };
 
   const initiatePayment = async (amountToPay) => {
-    if (amountToPay <= 0 || isNaN(amountToPay)) return alert("Please enter a valid amount.");
+    if (!Number.isFinite(Number(amountToPay)) || Number(amountToPay) <= 0) {
+      return alert("Please enter a valid amount.");
+    }
+    setPaymentLoading(true);
     try {
-      const meRes = await axiosInstance.get("/auth/me");
-      const fundedBy = meRes.data.user._id;
-      setPaymentLoading(true);
-
-      const { data } = await axios.post(`${APIURL}/api/v1/payments/initiate-payment`, {
-        amount: amountToPay,
+      const { data } = await axiosInstance.post("/payments/initiate-payment", {
+        amount: Number(amountToPay),
         projectId: project._id,
-        fundedBy,
       });
 
       const form = document.createElement("form");
@@ -94,8 +96,8 @@ const ProjectdetailPage = () => {
         product_code: "EPAYTEST",
         product_service_charge: 0,
         product_delivery_charge: 0,
-        success_url: `${APIURL}/api/v1/payments/complete-payment?redirect=${encodeURIComponent(window.location.origin + "/payment-result")}`,
-        failure_url: `${APIURL}/api/v1/payments/complete-payment?redirect=${encodeURIComponent(window.location.origin + "/payment-result?status=failed")}`,
+        success_url: `${API_BASE_URL}/payments/complete-payment?redirect=${encodeURIComponent(window.location.origin + "/payment-result")}`,
+        failure_url: `${API_BASE_URL}/payments/complete-payment?redirect=${encodeURIComponent(window.location.origin + "/payment-result?status=failed")}`,
         signed_field_names: data.signed_field_names,
         signature: data.signature,
       };
@@ -107,8 +109,8 @@ const ProjectdetailPage = () => {
       }
       document.body.appendChild(form);
       form.submit();
-    } catch (err) {
-      alert("Payment failed. Please try again.");
+    } catch {
+      toast.error("Payment failed. Please try again.");
     } finally {
       setPaymentLoading(false);
     }
@@ -118,13 +120,23 @@ const ProjectdetailPage = () => {
     try {
       await axiosInstance.get("/auth/me");
       navigate(`/chatroom`);
-    } catch (err) {
+    } catch {
       toast.error("Please log in to start a mentorship session.");
       navigate("/login");
     }
   };
 
   if (loading) return <PageLoader />;
+  if (!project) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-base-100">
+        <p className="text-base-content/70">This project could not be loaded.</p>
+        <Link to="/projects" className="btn btn-primary">
+          Back to projects
+        </Link>
+      </div>
+    );
+  }
 
   const isFunding = project.type === "funding";
 
@@ -282,7 +294,6 @@ const ProjectdetailPage = () => {
                     <PaymentProgress
                       projectId={project._id}
                       targetAmount={project.targetAmount}
-                      APIURL={APIURL}
                     />
 
                     <div className="grid grid-cols-2 gap-4 border-t border-base-300 pt-8">

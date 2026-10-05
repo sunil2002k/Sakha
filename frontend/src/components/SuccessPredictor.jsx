@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { Send, BrainCircuit, X, RotateCcw } from "lucide-react";
+import { AI_SERVICE_URL } from "../lib/ai.js";
 
 const questions = [
   { key: "project_domain", text: "What's your project domain?", placeholder: "e.g. HealthTech, AI, EdTech", type: "text" },
@@ -66,7 +67,7 @@ const SuccessPredictor = () => {
     setLoading(true);
     setMessages((prev) => [...prev, { role: "bot", text: "Analyzing your data with the Gradient Boosting model…" }]);
     try {
-      const response = await axios.post("http://127.0.0.1:5000/predict", finalData);
+      const response = await axios.post(`${AI_SERVICE_URL}/predict`, finalData);
       const { success_probability, prediction } = response.data;
       setResult({ probability: success_probability, verdict: prediction });
       setMessages((prev) => [...prev, { role: "bot", text: "Analysis complete! Your results are below." }]);
@@ -159,11 +160,10 @@ const SuccessPredictor = () => {
                   </div>
                 )}
                 <div
-                  className={`max-w-[80%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed whitespace-pre-line ${
-                    m.role === "user"
+                  className={`max-w-[80%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed whitespace-pre-line ${m.role === "user"
                       ? "bg-primary text-primary-content rounded-br-sm"
                       : "bg-base-100 border border-base-300 text-base-content rounded-bl-sm"
-                  }`}
+                    }`}
                 >
                   {m.text}
                 </div>
@@ -254,9 +254,8 @@ const SuccessPredictor = () => {
       {/* FAB BUTTON */}
       <button
         onClick={() => setIsOpen((prev) => !prev)}
-        className={`btn btn-primary btn-circle shadow-xl shadow-primary/30 hover:scale-110 transition-all duration-200 ${
-          isOpen ? "btn-md" : "btn-lg"
-        }`}
+        className={`btn btn-primary btn-circle shadow-xl shadow-primary/30 hover:scale-110 transition-all duration-200 ${isOpen ? "btn-md" : "btn-lg"
+          }`}
         title="Success Predictor"
       >
         {isOpen ? <X className="w-5 h-5" /> : <BrainCircuit className="w-6 h-6" />}

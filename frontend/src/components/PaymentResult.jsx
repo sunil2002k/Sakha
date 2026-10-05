@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import axios from "axios";
 import {
   CheckCircle,
   XCircle,
@@ -14,8 +13,6 @@ import {
   CreditCard,
   Wallet,
 } from "lucide-react";
-
-const APIURL = import.meta.env.VITE_APP_URL;
 
 const b64DecodeUnicode = (str) => {
   try {
@@ -34,45 +31,52 @@ const PaymentResult = () => {
   const navigate = useNavigate();
 
   const [loading, setLoading] = useState(true);
-  const [serverData, setServerData] = useState(null);
   const [decodedPayload, setDecodedPayload] = useState(null);
   const [error, setError] = useState(null);
 
   const dataParam = searchParams.get("data");
 
   useEffect(() => {
-    const fetchServer = async () => {
-      setLoading(true);
-      setError(null);
+    setLoading(true);
+    setError(null);
+    setDecodedPayload(null);
 
-      if (dataParam) {
-        const decoded = b64DecodeUnicode(dataParam);
-        if (decoded) {
-          try {
-            setDecodedPayload(JSON.parse(decoded));
-          } catch {
-            setDecodedPayload({ raw: decoded });
-          }
-        }
+    if (!dataParam) {
+      setError("Payment result is missing.");
+      setLoading(false);
+      return;
+    }
+
+    const decoded = b64DecodeUnicode(dataParam);
+    if (!decoded) {
+      setError("Could not read the payment result.");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const payload = JSON.parse(decoded);
+      if (
+        !payload ||
+        typeof payload !== "object" ||
+        Array.isArray(payload) ||
+        typeof payload.success !== "boolean" ||
+        typeof payload.message !== "string"
+      ) {
+        throw new Error("Invalid payment result payload");
       }
-
-      try {
-        const res = await axios.get(
-          `${APIURL}/api/v1/payments/complete-payment?data=${encodeURIComponent(dataParam || "")}`
-        );
-        setServerData(res.data);
-      } catch (err) {
-        setError(err.response?.data?.message || err.message || "Could not fetch payment result");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchServer();
+      setDecodedPayload(payload);
+    } catch {
+      setError("Could not read the payment result.");
+    } finally {
+      setLoading(false);
+    }
   }, [dataParam]);
 
-  const payment = serverData?.paymentData || decodedPayload || null;
-  const success = serverData?.success ?? (decodedPayload ? decodedPayload.status === "COMPLETE" : null);
+  const payment = decodedPayload?.paymentData || decodedPayload || null;
+  const success =
+    decodedPayload?.success ??
+    (decodedPayload ? decodedPayload.status === "COMPLETE" : null);
 
   const txId = payment?.transactionId ?? payment?.response?.ref_id ?? payment?.transaction_code ?? null;
   const projectId = payment?.projectId ?? payment?.product_code ?? null;
@@ -98,8 +102,8 @@ const PaymentResult = () => {
             <span className="absolute inset-0 rounded-2xl bg-primary/10 animate-ping" />
           </div>
           <div className="text-center space-y-1">
-            <p className="font-bold text-lg">Verifying your payment…</p>
-            <p className="text-base-content/50 text-sm">Please wait, this only takes a moment.</p>
+            <p className="font-bold text-lg">Loading payment result…</p>
+            <p className="text-base-content/50 text-sm">Please wait a moment.</p>
           </div>
         </div>
       </div>
@@ -138,7 +142,7 @@ const PaymentResult = () => {
                 {success ? "Payment Successful!" : success === false ? "Payment Failed" : "Payment Status Unknown"}
               </h1>
               <p className="text-base-content/55 text-sm">
-                {serverData?.message
+                {decodedPayload?.message
                   ?? (success
                     ? "Your transaction was completed successfully."
                     : success === false
@@ -151,7 +155,11 @@ const PaymentResult = () => {
             <span className={`badge badge-lg font-semibold px-4 ${
               success ? "badge-success" : success === false ? "badge-error" : "badge-warning"
             }`}>
-              {serverData?.success ? "COMPLETE" : decodedPayload?.status ?? "UNKNOWN"}
+              {success === true
+                ? "COMPLETE"
+                : success === false
+                ? "FAILED"
+                : decodedPayload?.status ?? "UNKNOWN"}
             </span>
           </div>
         </div>
@@ -180,10 +188,12 @@ const PaymentResult = () => {
               </div>
 
               <div className="divide-y divide-base-300">
-                {detailRows.map(({ icon: Icon, label, value }, i) => (
+                {detailRows.map(({ icon, label, value }, i) => (
                   <div key={i} className="flex items-center justify-between py-3 gap-4">
                     <div className="flex items-center gap-2.5 text-base-content/55">
-                      <Icon className="w-3.5 h-3.5 shrink-0" />
+                      {React.createElement(icon, {
+                        className: "w-3.5 h-3.5 shrink-0",
+                      })}
                       <span className="text-sm">{label}</span>
                     </div>
                     <span className="text-sm font-semibold text-right truncate max-w-[55%] font-mono">

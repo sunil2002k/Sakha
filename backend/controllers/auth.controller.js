@@ -5,23 +5,36 @@ import { JWT_SECRET, JWT_EXPIRES_IN, NODE_ENV } from "../config/env.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 
 export async function signUp(req, res) {
-  const { email, password, fullName, role } = req.body;
-
   try {
-    if (!email || !password || !fullName) {
+    const { email, password, fullName, role } = req.body || {};
+
+    if (
+      typeof email !== "string" ||
+      typeof password !== "string" ||
+      typeof fullName !== "string" ||
+      !email.trim() ||
+      !password ||
+      !fullName.trim()
+    ) {
       return res.status(400).json({ message: "All fields are required" });
+    }
+
+    if (role && !["student", "mentor"].includes(role)) {
+      return res.status(400).json({ message: "Invalid account role" });
     }
 
     if (password.length < 6) {
       return res.status(400).json({ message: "Password must be at least 6 characters" });
     }
 
+    const normalizedEmail = email.trim().toLowerCase();
+    const normalizedFullName = fullName.trim();
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
+    if (!emailRegex.test(normalizedEmail)) {
       return res.status(400).json({ message: "Invalid email format" });
     }
 
-    const existingUser = await User.findOne({ email });
+    const existingUser = await User.findOne({ email: normalizedEmail });
     if (existingUser) {
       return res.status(400).json({ message: "Email already exists, please use a different one" });
     }
@@ -30,8 +43,8 @@ export async function signUp(req, res) {
   const diceBearAvatar = `https://api.dicebear.com/7.x/adventurer/svg?seed=${randomSeed}`;
 
     const newUser = await User.create({
-      email,
-      fullName,
+      email: normalizedEmail,
+      fullName: normalizedFullName,
       password,
       profilePic: diceBearAvatar,
       role: role || "student",
@@ -59,7 +72,9 @@ export async function signUp(req, res) {
       secure: NODE_ENV === "production",
     });
 
-    res.status(201).json({ success: true, user: newUser, token });
+    const userObj = newUser.toObject();
+    delete userObj.password;
+    res.status(201).json({ success: true, user: userObj, token });
   } catch (error) {
     console.error("Error in signup controller", error);
     res.status(500).json({ message: "Internal Server Error" });
@@ -68,12 +83,13 @@ export async function signUp(req, res) {
 
 export async function signIn(req, res) {
   try {
-    const { email, password } = req.body;
+    const { email: submittedEmail, password } = req.body || {};
 
-    if (!email || !password) {
+    if (typeof submittedEmail !== "string" || typeof password !== "string" || !password) {
       return res.status(400).json({ message: "All fields are required" });
     }
 
+    const email = submittedEmail.trim().toLowerCase();
     const user = await User.findOne({ email }).select("+password");
     if (!user) {
       return res.status(401).json({ message: "Invalid email or password" });

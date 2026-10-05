@@ -13,7 +13,6 @@ export default function Signup() {
     role: "student",
   });
 
-  const [showPassword, setShowPassword] = useState(false);
   const { isPending, error, signupMutation } = useSignUp();
 
 
@@ -24,10 +23,6 @@ export default function Signup() {
     signupMutation(signupData);
   };
 
-
-  const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword);
-  };
 
   return (
     <div

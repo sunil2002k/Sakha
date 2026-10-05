@@ -74,7 +74,7 @@ const MyProjectPage = () => {
             <h1 className="text-4xl md:text-5xl font-black tracking-tight mb-2">My Projects</h1>
             <p className="opacity-60 font-medium text-lg">Manage your innovations and keep your backers informed.</p>
           </div>
-          <Link to="/create-project" className="btn btn-primary rounded-2xl px-8 shadow-lg h-12 font-bold">
+          <Link to="/submit" className="btn btn-primary rounded-2xl px-8 shadow-lg h-12 font-bold">
             <FaPlus className="mr-2" /> Create New
           </Link>
         </div>
@@ -87,7 +87,7 @@ const MyProjectPage = () => {
             </div>
             <h3 className="text-xl font-bold mb-1">No projects yet</h3>
             <p className="opacity-50 mb-6">Start your journey by launching your first idea.</p>
-            <Link to="/create-project" className="btn btn-outline rounded-xl btn-sm font-black">
+            <Link to="/submit" className="btn btn-outline rounded-xl btn-sm font-black">
               Launch Project
             </Link>
           </div>

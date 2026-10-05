@@ -1,7 +1,7 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { LANGUAGE_TO_FLAG } from "../constants";
 import { capitialize } from "../lib/utils";
+import LanguageFlag from "./LanguageFlag";
 
 const FriendCard = ({ friend }) => {
   const navigate = useNavigate();
@@ -23,11 +23,11 @@ const FriendCard = ({ friend }) => {
 
         <div className="flex flex-wrap gap-1.5 mb-3">
           <span className="badge badge-secondary text-xs">
-            {getLanguageFlag(friend.nativeLanguage)}
+            <LanguageFlag language={friend.nativeLanguage} />
             Native: {capitialize(friend.nativeLanguage)}
           </span>
           <span className="badge badge-outline text-xs">
-            {getLanguageFlag(friend.learningLanguage)}
+            <LanguageFlag language={friend.learningLanguage} />
             Learning: {capitialize(friend.learningLanguage)}
           </span>
         </div>
@@ -45,24 +45,3 @@ const FriendCard = ({ friend }) => {
 };
 
 export default FriendCard;
-
-export function getLanguageFlag(language) {
-  if (!language) return null;
-
-  const langLower = language.toLowerCase();
-  // Access the object containing { icon, color }
-  const langData = LANGUAGE_TO_FLAG[langLower];
-
-  if (langData) {
-    const IconComponent = langData.icon;
-    return (
-      <IconComponent 
-        style={{ color: langData.color }} 
-        className="h-4 w-4 mr-2 inline-block" 
-        title={`${language} icon`}
-      />
-    );
-  }
-  
-  return null;
-}

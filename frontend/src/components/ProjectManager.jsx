@@ -50,7 +50,7 @@ const ProjectManager = () => {
         toast.success("Project rejected and owner notified.");
         fetchAllProjects();
       }
-    } catch (err) {
+    } catch {
       toast.error("Failed to reject project");
     }
   };
